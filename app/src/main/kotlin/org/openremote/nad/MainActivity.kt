@@ -1,6 +1,5 @@
 package org.openremote.nad
 
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -43,6 +42,10 @@ private class Amp(val onSend: (String, String) -> Unit) {
     var connected by mutableStateOf(false)
     var scanning by mutableStateOf(false)
     var message by mutableStateOf("")
+    var maxVolume by mutableStateOf(12f)
+    var host = ""
+    var onForget: () -> Unit = {}
+    var onRaw: (String) -> Unit = {}
     val on get() = s["Power"] == "On"
     val volume get() = s["Volume"]?.toFloatOrNull()
     fun flag(k: String) = s[k] == "On"
@@ -58,9 +61,12 @@ class MainActivity : ComponentActivity() {
         val prefs = getSharedPreferences("p", MODE_PRIVATE)
         amp = Amp { k, v -> client?.set(k, v) }
         var host by mutableStateOf(prefs.getString("ip", "") ?: "")
+        amp.maxVolume = prefs.getFloat("maxVol", 12f)
+        amp.onForget = { client?.stop(); amp.connected = false; amp.s.clear(); amp.message = ""; prefs.edit().remove("ip").apply(); host = "" }
+        amp.onRaw = { client?.sendRaw(it) }
 
         fun connect(h: String, rescan: Boolean = false) {
-            host = h; prefs.edit().putString("ip", h).apply(); client?.stop()
+            host = h; amp.host = h; prefs.edit().putString("ip", h).apply(); client?.stop()
             var ever = false
             client = NadClient(h, onState = { k, v -> runOnUiThread { amp.s[k] = v } }, onConnected = { ok ->
                 runOnUiThread {
@@ -79,7 +85,8 @@ class MainActivity : ComponentActivity() {
             AmpTheme {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     Screen(amp, host,
-                        onHost = { host = it }, onConnect = { connect(host.trim()) }, onFind = { find() })
+                        onHost = { host = it }, onConnect = { connect(host.trim()) }, onFind = { find() },
+                        onMaxVolume = { amp.maxVolume = it; prefs.edit().putFloat("maxVol", it).apply() })
                 }
             }
         }
@@ -102,25 +109,31 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() { client?.stop(); super.onDestroy() }
 }
 
-@Composable
-private fun AmpTheme(content: @Composable () -> Unit) {
-    val dark = androidx.compose.foundation.isSystemInDarkTheme()
-    val ctx = LocalContext.current
-    val scheme = when {
-        Build.VERSION.SDK_INT >= 31 -> if (dark) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
-        dark -> darkColorScheme()
-        else -> lightColorScheme()
-    }
-    MaterialTheme(colorScheme = scheme, content = content)
-}
+// Palette inspired by NAD's dark look: #0D0D0D, #212123, #EE2E25, #FFFFFF. Colors only, no logo or name.
+private val NadDark = darkColorScheme(
+    primary = Color(0xFFEE2E25), onPrimary = Color.White,
+    primaryContainer = Color(0xFF5A1210), onPrimaryContainer = Color.White,
+    secondaryContainer = Color(0xFF3A1513), onSecondaryContainer = Color.White,
+    background = Color(0xFF0D0D0D), onBackground = Color.White,
+    surface = Color(0xFF212123), onSurface = Color.White,
+    surfaceVariant = Color(0xFF2E2E31), onSurfaceVariant = Color(0xFFB8B8BC),
+    surfaceContainerLow = Color(0xFF212123), surfaceContainer = Color(0xFF212123),
+    surfaceContainerHigh = Color(0xFF2A2A2D), surfaceContainerHighest = Color(0xFF2E2E31),
+    outline = Color(0xFF8A8A8F), outlineVariant = Color(0xFF3C3C40),
+)
 
 @Composable
-private fun Screen(amp: Amp, host: String, onHost: (String) -> Unit, onConnect: () -> Unit, onFind: () -> Unit) {
+private fun AmpTheme(content: @Composable () -> Unit) = MaterialTheme(colorScheme = NadDark, content = content)
+
+@Composable
+private fun Screen(amp: Amp, host: String, onHost: (String) -> Unit, onConnect: () -> Unit, onFind: () -> Unit, onMaxVolume: (Float) -> Unit) {
+    var advanced by remember { mutableStateOf(false) }
+    if (advanced) AdvancedSheet(amp, onMaxVolume) { advanced = false }
     Column(
         Modifier.verticalScroll(rememberScrollState()).statusBarsPadding().navigationBarsPadding().padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Header(amp)
+        Header(amp) { advanced = true }
         if (!amp.connected) ConnectCard(amp, host, onHost, onConnect, onFind)
         else {
             PowerButton(amp)
@@ -134,13 +147,16 @@ private fun Screen(amp: Amp, host: String, onHost: (String) -> Unit, onConnect: 
 }
 
 @Composable
-private fun Header(amp: Amp) {
-    Column {
+private fun Header(amp: Amp, onAdvanced: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+    Column(Modifier.weight(1f)) {
         Text("Open Remote", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Text(
             if (amp.connected) "${amp.s["Model"] ?: "Amp"} · connected" else "Not connected",
             style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+    if (amp.connected) TextButton(onAdvanced) { Text("Advanced") }
     }
 }
 
@@ -183,17 +199,17 @@ private fun PowerButton(amp: Amp) {
 @Composable
 private fun VolumeCard(amp: Amp) {
     val haptic = LocalHapticFeedback.current
-    val vol = amp.volume ?: -80f
+    val vol = (amp.volume ?: -80f)
     var drag by remember { mutableStateOf<Float?>(null) }
-    val shown = drag ?: vol
-    fun set(v: Float) = amp.onSend("Volume", "%.1f".format(v.coerceIn(-80f, 12f)))
+    val shown = (drag ?: vol).coerceAtMost(amp.maxVolume)
+    fun set(v: Float) = amp.onSend("Volume", "%.1f".format(v.coerceIn(-80f, amp.maxVolume)))
     val muted = amp.flag("Mute")
     ElevatedCard(Modifier.fillMaxWidth(), shape = RoundedCornerShape(28.dp)) {
         Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text("%.1f".format(shown), fontSize = 56.sp, fontWeight = FontWeight.Light,
                 color = if (muted) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface)
             Text(if (muted) "dB · muted" else "dB", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Slider(shown, { drag = it }, Modifier.fillMaxWidth(), valueRange = -80f..12f,
+            Slider(shown, { drag = it }, Modifier.fillMaxWidth(), valueRange = -80f..amp.maxVolume,
                 onValueChangeFinished = { drag?.let { set(it) }; drag = null })
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 FilledTonalIconButton({ haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); set(vol - 1) }, Modifier.size(56.dp)) { Text("−", fontSize = 24.sp) }
@@ -249,5 +265,26 @@ private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) 
         Column(Modifier.padding(20.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(bottom = 8.dp))
             content()
+        }
+    }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AdvancedSheet(amp: Amp, onMaxVolume: (Float) -> Unit, onClose: () -> Unit) =
+    ModalBottomSheet(onClose, containerColor = MaterialTheme.colorScheme.surface) {
+        Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 32.dp).navigationBarsPadding(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Advanced", style = MaterialTheme.typography.headlineSmall)
+            Text("Volume limit: ${"%.0f".format(amp.maxVolume)} dB", style = MaterialTheme.typography.titleMedium)
+            Text("Caps the slider and the + button. Protects your ears and speakers.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Slider(amp.maxVolume, onMaxVolume, valueRange = -40f..12f, steps = 51)
+            HorizontalDivider()
+            Text("Amp address: ${amp.host}", style = MaterialTheme.typography.bodyLarge)
+            OutlinedButton({ onClose(); amp.onForget() }, Modifier.fillMaxWidth()) { Text("Forget this amp and search again") }
+            HorizontalDivider()
+            var raw by remember { mutableStateOf("") }
+            Text("Raw command", style = MaterialTheme.typography.titleMedium)
+            Text("For experts. Sent as typed, for example Main.Brightness=1. An unknown command gets no reply.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            OutlinedTextField(raw, { raw = it }, Modifier.fillMaxWidth(), singleLine = true, placeholder = { Text("Main.Key=Value") })
+            Button({ amp.onRaw(raw.trim()); raw = "" }, enabled = raw.startsWith("Main."), modifier = Modifier.fillMaxWidth()) { Text("Send") }
         }
     }

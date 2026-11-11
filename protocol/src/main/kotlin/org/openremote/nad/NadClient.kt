@@ -41,6 +41,9 @@ class NadClient(
 
     fun refresh() = write("Main?")
 
+    /** Sends a full command line as typed; callers must make sure it is a protocol command. */
+    fun sendRaw(line: String) = write(line)
+
     private fun write(cmd: String) {
         val s = socket ?: return
         Thread {
