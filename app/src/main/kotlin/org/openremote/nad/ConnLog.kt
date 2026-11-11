@@ -36,6 +36,6 @@ object ConnLog {
     private fun wifi(ctx: Context): String = runCatching {
         val wm = ctx.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         val i = wm.connectionInfo
-        if (!wm.isWifiEnabled || i.networkId == -1) "Wi-Fi off" else "Wi-Fi ${i.rssi} dBm ${i.linkSpeed} Mbps"
+        if (!wm.isWifiEnabled) "Wi-Fi off" else if (i.rssi <= -127) "Wi-Fi ?" else "Wi-Fi ${i.rssi} dBm ${i.linkSpeed} Mbps"
     }.getOrDefault("Wi-Fi ?")
 }

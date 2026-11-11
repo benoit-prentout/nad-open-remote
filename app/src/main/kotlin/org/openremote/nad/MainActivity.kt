@@ -25,6 +25,7 @@ class Amp {
     var found by mutableStateOf<Map<String, String>>(emptyMap())
     var maxVolume by mutableStateOf(12f)
     var volKeys by mutableStateOf(true)
+    var bgKeys by mutableStateOf(false)
     var host by mutableStateOf("")
     var theme by mutableStateOf(ThemeChoice.System)
     var lang by mutableStateOf("system")
@@ -35,7 +36,7 @@ class Amp {
 
 class Actions(
     val send: (String, String) -> Unit, val raw: (String) -> Unit, val find: () -> Unit, val connect: (String, Int) -> Unit,
-    val media: (Int) -> Unit, val forget: () -> Unit, val setTheme: (ThemeChoice) -> Unit, val setLang: (String) -> Unit, val setMaxVolume: (Float) -> Unit, val setVolKeys: (Boolean) -> Unit,
+    val media: (Int) -> Unit, val forget: () -> Unit, val setTheme: (ThemeChoice) -> Unit, val setLang: (String) -> Unit, val setMaxVolume: (Float) -> Unit, val setVolKeys: (Boolean) -> Unit, val setBgKeys: (Boolean) -> Unit,
 )
 
 class MainActivity : ComponentActivity() {
@@ -46,6 +47,16 @@ class MainActivity : ComponentActivity() {
     private val markDown = Runnable { amp.connected = false }
     private var keyVol = Float.NaN
     private var keyAt = 0L
+
+    private val notifPerm = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) {}
+
+    private fun setBg(on: Boolean) {
+        amp.bgKeys = on; prefs.edit().putBoolean("bgKeys", on).apply()
+        if (!on) { VolumeKeyService.stop(this); return }
+        if (android.os.Build.VERSION.SDK_INT >= 33 && checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED)
+            notifPerm.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        if (!prefs.getString("ip", "").isNullOrBlank()) VolumeKeyService.start(this)
+    }
 
     override fun onStart() { super.onStart(); client?.reconnectNow() }
 
@@ -77,6 +88,7 @@ class MainActivity : ComponentActivity() {
         ConnLog.load(this)
         amp.maxVolume = prefs.getFloat("maxVol", 12f)
         amp.volKeys = prefs.getBoolean("volKeys", true)
+        amp.bgKeys = prefs.getBoolean("bgKeys", false)
         amp.theme = runCatching { ThemeChoice.valueOf(prefs.getString("theme", "")!!) }.getOrDefault(ThemeChoice.System)
         amp.lang = prefs.getString("lang", "system") ?: "system"
         // debug builds only: `am start --es theme Dracula` previews a theme without saving it (used for screenshots)
@@ -95,13 +107,14 @@ class MainActivity : ComponentActivity() {
                 am.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, code))
             },
             forget = {
-                client?.stop(); amp.connected = false; amp.s.clear(); amp.host = ""; amp.found = emptyMap(); amp.message = null
+                client?.stop(); VolumeKeyService.stop(this); amp.connected = false; amp.s.clear(); amp.host = ""; amp.found = emptyMap(); amp.message = null
                 prefs.edit().remove("ip").remove("port").apply()
             },
             setTheme = { amp.theme = it; prefs.edit().putString("theme", it.name).apply() },
             setLang = { prefs.edit().putString("lang", it).apply(); recreate() },
             setMaxVolume = { amp.maxVolume = it; prefs.edit().putFloat("maxVol", it).apply() },
-            setVolKeys = { amp.volKeys = it; prefs.edit().putBoolean("volKeys", it).apply() },
+            setVolKeys = { amp.volKeys = it; prefs.edit().putBoolean("volKeys", it).apply(); if (!it) setBg(false) },
+            setBgKeys = ::setBg,
         )
         setContent {
             val dark = if (amp.theme == ThemeChoice.System) isSystemInDarkTheme() else amp.theme.isDark
@@ -121,6 +134,7 @@ class MainActivity : ComponentActivity() {
     private fun connect(h: String, port: Int, rescanIfUnreachable: Boolean = false) {
         amp.host = if (port == 30001) h else "$h:$port"; amp.found = emptyMap(); amp.message = null
         prefs.edit().putString("ip", h).putInt("port", port).apply()
+        if (amp.bgKeys) VolumeKeyService.start(this)
         client?.stop()
         var ever = false
         client = NadClient(h, port, onState = { k, v -> runOnUiThread { amp.s[k] = v } }, onEvent = { ConnLog.add(this, it) }, onConnected = { ok ->

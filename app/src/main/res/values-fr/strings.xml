@@ -76,4 +76,9 @@
     <string name="log_empty">Rien d\'enregistré pour l\'instant.</string>
     <string name="copy">Copier</string>
     <string name="clear">Effacer</string>
+    <string name="bg_keys">Les garder actifs en arrière-plan</string>
+    <string name="bg_keys_sub">Fonctionne appli fermée et écran éteint. Lance un petit service avec une notification, garde une connexion à l\'ampli et joue un son silencieux inaudible (Android en a besoin pour acheminer les boutons). Consomme un peu plus de batterie. Désactivez-le pour économiser la batterie.</string>
+    <string name="bg_notif_title">Les boutons de volume commandent l\'ampli</string>
+    <string name="bg_notif_text">Touchez pour ouvrir. Utilisez le bouton pour arrêter.</string>
+    <string name="bg_notif_stop">Arrêter</string>
 </resources>

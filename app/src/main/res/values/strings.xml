@@ -85,4 +85,9 @@
     <string name="log_empty">Nothing logged yet.</string>
     <string name="copy">Copy</string>
     <string name="clear">Clear</string>
+    <string name="bg_keys">Keep them active in the background</string>
+    <string name="bg_keys_sub">Works with the app closed and the screen off. Runs a small service with a notification, keeps a connection to the amp and plays an inaudible silent sound (Android needs it to route the buttons). Uses a little more battery. Turn it off to save battery.</string>
+    <string name="bg_notif_title">Volume buttons control the amp</string>
+    <string name="bg_notif_text">Tap to open. Use the button to stop.</string>
+    <string name="bg_notif_stop">Stop</string>
 </resources>

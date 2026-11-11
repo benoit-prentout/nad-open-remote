@@ -323,13 +323,20 @@ private fun SettingsSheet(amp: Amp, a: Actions, onClose: () -> Unit) =
             HorizontalDivider()
             Text(stringResource(R.string.volume_limit_fmt, amp.maxVolume.toInt()), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.volume_limit_sub), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Slider(amp.maxVolume, a.setMaxVolume, valueRange = -40f..12f, steps = 51)
+            Slider(amp.maxVolume, { a.setMaxVolume(Math.round(it).toFloat()) }, valueRange = -40f..12f) // whole dB, no tick marks
             Row(Modifier.fillMaxWidth().toggleable(amp.volKeys, role = Role.Switch, onValueChange = a.setVolKeys), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.vol_keys), style = MaterialTheme.typography.bodyLarge)
                     Text(stringResource(R.string.vol_keys_sub), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Switch(amp.volKeys, null, colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.secondary, checkedThumbColor = MaterialTheme.colorScheme.onSecondary, checkedBorderColor = MaterialTheme.colorScheme.secondary))
+            }
+            if (amp.volKeys) Row(Modifier.fillMaxWidth().toggleable(amp.bgKeys, role = Role.Switch, onValueChange = a.setBgKeys), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.bg_keys), style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.bg_keys_sub), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Switch(amp.bgKeys, null, colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.secondary, checkedThumbColor = MaterialTheme.colorScheme.onSecondary, checkedBorderColor = MaterialTheme.colorScheme.secondary))
             }
             HorizontalDivider()
             Text(stringResource(R.string.amp_section), style = MaterialTheme.typography.titleMedium)
