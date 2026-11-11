@@ -16,6 +16,7 @@
     <string name="unreachable">Ampli enregistré injoignable, recherche…</string>
     <string name="db_muted">dB · coupé</string>
     <string name="mute">Muet</string>
+    <string name="muted">Coupé</string>
     <string name="source">Source</string>
     <string name="src_stream">Streaming</string>
     <string name="src_coax1">Coaxial 1</string>

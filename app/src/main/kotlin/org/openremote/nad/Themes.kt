@@ -15,41 +15,57 @@ private fun c(hex: Long) = Color(0xFF000000 or hex)
 
 private val LightScheme = lightColorScheme(
     primary = c(0xC9241C), onPrimary = Color.White,
-    background = c(0xF6F6F7), onBackground = c(0x151517),
-    surface = c(0xFFFFFF), onSurface = c(0x151517),
-    surfaceVariant = c(0xE9E9EC), onSurfaceVariant = c(0x5C5C62),
-    surfaceContainerLow = c(0xFFFFFF), surfaceContainerHighest = c(0xE9E9EC),
-    outline = c(0x8A8A90), outlineVariant = c(0xD3D3D8),
+    primaryContainer = c(0xFFD9D5), onPrimaryContainer = c(0x410002),
+    secondary = c(0x1C1C1F), onSecondary = Color.White,
+    secondaryContainer = c(0x1C1C1F), onSecondaryContainer = Color.White,
+    background = c(0xEEEEF0), onBackground = c(0x151517),
+    surface = c(0xFFFFFF), onSurface = c(0x151517), surfaceTint = c(0xFFFFFF),
+    surfaceContainerLow = c(0xFFFFFF), surfaceContainer = c(0xFFFFFF), surfaceContainerHighest = c(0xE3E3E7),
+    surfaceVariant = c(0xE9E9EC), onSurfaceVariant = c(0x55555B),
+    outline = c(0x7D7D84), outlineVariant = c(0xCFCFD4),
 )
 
 private val DarkScheme = darkColorScheme(
-    primary = c(0xFF6A62), onPrimary = c(0x2A0504),
+    primary = c(0xFF5449), onPrimary = Color.White,
+    primaryContainer = c(0x5C1A16), onPrimaryContainer = c(0xFFDAD5),
+    secondary = c(0xECECEF), onSecondary = c(0x121214),
+    secondaryContainer = c(0xECECEF), onSecondaryContainer = c(0x121214),
     background = c(0x121214), onBackground = c(0xF2F2F4),
-    surface = c(0x1C1C1F), onSurface = c(0xF2F2F4),
-    surfaceVariant = c(0x2A2A2E), onSurfaceVariant = c(0xA9A9B0),
-    surfaceContainerLow = c(0x1C1C1F), surfaceContainerHighest = c(0x2A2A2E),
-    outline = c(0x77777E), outlineVariant = c(0x38383D),
+    surface = c(0x1C1C1F), onSurface = c(0xF2F2F4), surfaceTint = c(0x1C1C1F),
+    surfaceContainerLow = c(0x1C1C1F), surfaceContainer = c(0x1C1C1F), surfaceContainerHighest = c(0x333338),
+    surfaceVariant = c(0x2A2A2E), onSurfaceVariant = c(0xAAAAB1),
+    outline = c(0x84848B), outlineVariant = c(0x44444A),
 )
 
-// NAD-inspired: #0D0D0D / #212123 / #EE2E25 / #FFFFFF. Red is the single hot accent, used for "on" states only. Colors only, no logo.
+// NAD-inspired: anchors #0D0D0D / #212123 / #EE2E25 / #FFFFFF. Graphite and white like the front panel;
+// red only for power-on, the volume slider and mute. Colors only, no logo.
 private val NadScheme = darkColorScheme(
     primary = c(0xEE2E25), onPrimary = Color.White,
+    primaryContainer = c(0x4A1210), onPrimaryContainer = c(0xFFDAD5),
+    secondary = c(0xE8E8EA), onSecondary = c(0x0D0D0D),
+    secondaryContainer = Color.White, onSecondaryContainer = c(0x0D0D0D),
+    tertiary = c(0xFF6B61), onTertiary = c(0x0D0D0D),
     background = c(0x0D0D0D), onBackground = Color.White,
-    surface = c(0x212123), onSurface = Color.White,
-    surfaceVariant = c(0x2C2C2F), onSurfaceVariant = c(0xA8A8AD),
-    surfaceContainerLow = c(0x212123), surfaceContainerHighest = c(0x2C2C2F),
-    outline = c(0x7C7C82), outlineVariant = c(0x3A3A3E),
+    surface = c(0x212123), onSurface = Color.White, surfaceTint = c(0x212123),
+    surfaceContainerLowest = c(0x0D0D0D), surfaceContainerLow = c(0x18181A), surfaceContainer = c(0x212123),
+    surfaceContainerHigh = c(0x2B2B2E), surfaceContainerHighest = c(0x353538),
+    surfaceVariant = c(0x2B2B2E), onSurfaceVariant = c(0xA8A8AD),
+    outline = c(0x8A8A90), outlineVariant = c(0x48484C),
+    inverseSurface = Color.White, inverseOnSurface = c(0x0D0D0D),
 )
 
-// Dracula (draculatheme.com): bg #282A36, current line #44475A, fg #F8F8F2, purple #BD93F9, comment #6272A4.
+// Dracula (draculatheme.com): bg #282A36, current line #44475A, fg #F8F8F2, purple #BD93F9, pink #FF79C6, comment #6272A4.
 private val DraculaScheme = darkColorScheme(
     primary = c(0xBD93F9), onPrimary = c(0x282A36),
-    secondary = c(0xFF79C6), tertiary = c(0x50FA7B),
+    primaryContainer = c(0x6B3A62), onPrimaryContainer = c(0xFFD6EE),
+    secondary = c(0xBD93F9), onSecondary = c(0x282A36),
+    secondaryContainer = c(0xBD93F9), onSecondaryContainer = c(0x282A36),
+    tertiary = c(0xFF79C6),
     background = c(0x282A36), onBackground = c(0xF8F8F2),
-    surface = c(0x343746), onSurface = c(0xF8F8F2),
-    surfaceVariant = c(0x44475A), onSurfaceVariant = c(0xB5B9CF),
-    surfaceContainerLow = c(0x343746), surfaceContainerHighest = c(0x44475A),
-    outline = c(0x6272A4), outlineVariant = c(0x4B4F66),
+    surface = c(0x3A3D4E), onSurface = c(0xF8F8F2), surfaceTint = c(0x3A3D4E),
+    surfaceContainerLow = c(0x3A3D4E), surfaceContainer = c(0x3A3D4E), surfaceContainerHighest = c(0x4D5066),
+    surfaceVariant = c(0x44475A), onSurfaceVariant = c(0xBCC0D6),
+    outline = c(0x7B88B8), outlineVariant = c(0x555972),
 )
 
 @Composable

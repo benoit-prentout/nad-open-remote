@@ -2,6 +2,7 @@ package org.openremote.nad
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +25,13 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,7 +44,7 @@ private val CARD = RoundedCornerShape(28.dp)
 
 @Composable
 private fun chipColors() = FilterChipDefaults.filterChipColors(
-    selectedContainerColor = MaterialTheme.colorScheme.primary, selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+    selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer, selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
 )
 
 @Composable
@@ -70,12 +78,26 @@ private fun Header(amp: Amp, onSettings: () -> Unit) = Row(verticalAlignment = A
             style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-    TextButton(onSettings) { Text(stringResource(R.string.settings)) }
+    IconButton(onSettings) {
+        val c = MaterialTheme.colorScheme.onSurfaceVariant
+        val bgc = MaterialTheme.colorScheme.background
+        Canvas(Modifier.size(24.dp).semantics { contentDescription = "Settings" }) {
+            val w = 2.dp.toPx()
+            listOf(0.2f to 0.35f, 0.5f to 0.7f, 0.8f to 0.45f).forEach { (y, x) ->
+                drawLine(c, Offset(0f, size.height * y), Offset(size.width, size.height * y), w, StrokeCap.Round)
+                drawCircle(bgc, 4.dp.toPx(), Offset(size.width * x, size.height * y))
+                drawCircle(c, 4.dp.toPx(), Offset(size.width * x, size.height * y), style = Stroke(w))
+            }
+        }
+    }
 }
 
 @Composable
-private fun Banner(text: String) = Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
-    Text(text, Modifier.padding(14.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun Banner(text: String) = Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surfaceContainerHighest) {
+    Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary, CircleShape)); Spacer(Modifier.width(10.dp))
+        Text(text, color = MaterialTheme.colorScheme.onSurface)
+    }
 }
 
 @Composable
@@ -114,19 +136,23 @@ private fun ManualCard(a: Actions) = Section(stringResource(R.string.manual_titl
 @Composable
 private fun PowerButton(amp: Amp, a: Actions) {
     val haptic = LocalHapticFeedback.current
+    val src = remember { MutableInteractionSource() }
+    val pressed by src.collectIsPressedAsState()
+    val press by animateFloatAsState(if (pressed) 0.92f else 1f, spring(dampingRatio = 0.5f, stiffness = 600f))
     val bg by animateColorAsState(if (amp.on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, tween(400))
     val fg by animateColorAsState(if (amp.on) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant, tween(400))
-    val pulse by rememberInfiniteTransition().animateFloat(1f, 1.1f, infiniteRepeatable(tween(1800, easing = FastOutSlowInEasing), RepeatMode.Reverse))
-    Box(Modifier.fillMaxWidth().height(170.dp), contentAlignment = Alignment.Center) {
-        if (amp.on) Box(Modifier.size(140.dp).scale(pulse).alpha(0.18f).background(bg, CircleShape))
-        Surface(
-            onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); a.send("Power", if (amp.on) "Off" else "On") },
-            shape = CircleShape, color = bg, modifier = Modifier.size(112.dp), shadowElevation = if (amp.on) 8.dp else 0.dp,
-        ) {
-            Canvas(Modifier.padding(34.dp)) {
-                val w = 5.dp.toPx(); val st = Stroke(w, cap = StrokeCap.Round)
-                drawArc(fg, -60f, 300f, false, Offset(w, w), Size(size.width - 2 * w, size.height - 2 * w), style = st)
-                drawLine(fg, Offset(size.width / 2, 0f), Offset(size.width / 2, size.height / 2.2f), w, StrokeCap.Round)
+    val ring by animateColorAsState(if (amp.on) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.outlineVariant, tween(400))
+    Box(Modifier.fillMaxWidth().height(148.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(136.dp).scale(press).border(3.dp, ring, CircleShape), contentAlignment = Alignment.Center) {
+            Surface(
+                onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); a.send("Power", if (amp.on) "Off" else "On") },
+                shape = CircleShape, color = bg, modifier = Modifier.size(112.dp), interactionSource = src,
+            ) {
+                Canvas(Modifier.padding(34.dp)) {
+                    val w = 5.dp.toPx(); val st = Stroke(w, cap = StrokeCap.Round)
+                    drawArc(fg, -60f, 300f, false, Offset(w, w), Size(size.width - 2 * w, size.height - 2 * w), style = st)
+                    drawLine(fg, Offset(size.width / 2, 0f), Offset(size.width / 2, size.height / 2.2f), w, StrokeCap.Round)
+                }
             }
         }
     }
@@ -140,29 +166,45 @@ private fun VolumeCard(amp: Amp, a: Actions) {
     val shown = (drag ?: vol).coerceAtMost(amp.maxVolume)
     fun set(v: Float) = a.send("Volume", "%.1f".format(java.util.Locale.US, v.coerceIn(-80f, amp.maxVolume)))
     val muted = amp.flag("Mute")
-    ElevatedCard(Modifier.fillMaxWidth(), shape = CARD, colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    ElevatedCard(Modifier.fillMaxWidth(), shape = CARD, colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("%.1f".format(shown), fontSize = 56.sp, fontWeight = FontWeight.Light,
-                color = if (muted) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface)
-            Text(stringResource(if (muted) R.string.db_muted else R.string.db), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text("%.1f".format(shown), fontSize = 60.sp, fontWeight = FontWeight.Light,
+                    style = TextStyle(fontFeatureSettings = "tnum"), color = if (muted) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface)
+                Text(" dB", Modifier.padding(bottom = 12.dp), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Text(if (muted) stringResource(R.string.muted).uppercase() else " ", style = MaterialTheme.typography.labelLarge, letterSpacing = 1.5.sp,
+                color = MaterialTheme.colorScheme.tertiary.takeIf { muted } ?: MaterialTheme.colorScheme.onSurfaceVariant)
             Slider(shown, { drag = it }, Modifier.fillMaxWidth(), valueRange = -80f..amp.maxVolume,
                 onValueChangeFinished = { drag?.let { set(it) }; drag = null },
-                colors = SliderDefaults.colors(inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant))
+                colors = SliderDefaults.colors(inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 val btn = IconButtonDefaults.filledTonalIconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurface)
                 FilledTonalIconButton({ haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); set(vol - 1) }, Modifier.size(56.dp), colors = btn) { Text("−", fontSize = 24.sp) }
-                FilterChip(muted, { a.send("Mute", if (muted) "Off" else "On") }, { Text(stringResource(R.string.mute)) }, colors = chipColors())
+                FilterChip(muted, { a.send("Mute", if (muted) "Off" else "On") }, { Text(stringResource(R.string.mute)) }, Modifier.height(56.dp),
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primaryContainer, selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer, ),
+                    shape = RoundedCornerShape(28.dp))
                 FilledTonalIconButton({ haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); set(vol + 1) }, Modifier.size(56.dp), colors = btn) { Text("+", fontSize = 24.sp) }
             }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SourceCard(amp: Amp, a: Actions) = Section(stringResource(R.string.source)) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        SOURCES.forEach { (key, label) -> FilterChip(amp.s["Source"] == key, { a.send("Source", key) }, { Text(stringResource(label)) }, colors = chipColors()) }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SOURCES.chunked(4).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                row.forEach { (key, label) ->
+                    val sel = amp.s["Source"] == key
+                    Surface(
+                        onClick = { a.send("Source", key) }, Modifier.weight(1f).height(52.dp), shape = RoundedCornerShape(16.dp),
+                        color = if (sel) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = if (sel) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
+                    ) { Box(contentAlignment = Alignment.Center) { Text(stringResource(label), fontSize = 13.sp, maxLines = 1, textAlign = TextAlign.Center, fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Normal) } }
+                }
+            }
+        }
     }
 }
 
@@ -173,7 +215,8 @@ private fun SoundCard(amp: Amp, a: Actions) = Section(stringResource(R.string.so
             Text(stringResource(label), style = MaterialTheme.typography.bodyLarge)
             Text(stringResource(sub), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(amp.flag(key), { a.send(key, if (it) "On" else "Off") })
+        Switch(amp.flag(key), { a.send(key, if (it) "On" else "Off") },
+            colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.secondary, checkedThumbColor = MaterialTheme.colorScheme.onSecondary, checkedBorderColor = MaterialTheme.colorScheme.secondary))
     }
     row(R.string.bass, R.string.bass_sub, "Bass")
     row(R.string.autosense, R.string.autosense_sub, "AutoSense")
@@ -185,7 +228,7 @@ private fun SoundCard(amp: Amp, a: Actions) = Section(stringResource(R.string.so
     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(top = 8.dp)) {
         listOf(R.string.br_off, R.string.br_low, R.string.br_mid, R.string.br_high).forEachIndexed { i, l ->
             SegmentedButton(b == i, { a.send("Brightness", "$i") }, SegmentedButtonDefaults.itemShape(i, 4),
-                colors = SegmentedButtonDefaults.colors(activeContainerColor = MaterialTheme.colorScheme.primary, activeContentColor = MaterialTheme.colorScheme.onPrimary)) { Text(stringResource(l)) }
+                icon = {}, colors = SegmentedButtonDefaults.colors(activeContainerColor = MaterialTheme.colorScheme.secondaryContainer, activeContentColor = MaterialTheme.colorScheme.onSecondaryContainer, inactiveBorderColor = MaterialTheme.colorScheme.outlineVariant, activeBorderColor = MaterialTheme.colorScheme.secondaryContainer)) { Text(stringResource(l)) }
         }
     }
 }
@@ -197,14 +240,14 @@ private fun InfoCard(amp: Amp) = Section(stringResource(R.string.about)) {
             Text(stringResource(k), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant); Text(v ?: "–")
         }
     }
-    Text(stringResource(R.string.disclaimer), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline, modifier = Modifier.padding(top = 8.dp))
+    Text(stringResource(R.string.disclaimer), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
 }
 
 @Composable
 private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) =
-    ElevatedCard(Modifier.fillMaxWidth(), shape = CARD, colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    ElevatedCard(Modifier.fillMaxWidth(), shape = CARD, colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(Modifier.padding(20.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 10.dp))
+            Text(title.uppercase(), style = MaterialTheme.typography.labelLarge, letterSpacing = 1.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 12.dp))
             content()
         }
     }
