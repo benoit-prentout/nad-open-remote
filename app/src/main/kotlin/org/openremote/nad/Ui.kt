@@ -360,13 +360,15 @@ private fun ConnectionLog() {
     val lines = ConnLog.lines
     Text(stringResource(R.string.conn_log), style = MaterialTheme.typography.bodyLarge)
     Text(stringResource(R.string.conn_log_sub), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+    var shown by remember { mutableStateOf(false) } // collapsed by default: the log is long
+    if (shown) Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
         Text(
             if (lines.isEmpty()) stringResource(R.string.log_empty) else lines.takeLast(30).reversed().joinToString("\n"),
             Modifier.padding(12.dp), fontSize = 11.sp, lineHeight = 15.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
         )
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedButton({ shown = !shown }) { Text(stringResource(if (shown) R.string.hide_log else R.string.show_log)) }
         OutlinedButton({
             val cm = ctx.getSystemService(android.content.ClipboardManager::class.java)
             cm.setPrimaryClip(android.content.ClipData.newPlainText("log", lines.joinToString("\n")))

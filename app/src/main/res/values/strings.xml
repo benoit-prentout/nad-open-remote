@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">Open Remote for NAD</string>
+    <string name="app_name" translatable="false">NAD Open Remote</string>
     <string name="not_connected">Not connected</string>
     <string name="connected_fmt">%1$s · connected</string>
     <string name="settings">Settings</string>
@@ -85,4 +85,6 @@
     <string name="bg_notif_title">Volume buttons control the amp</string>
     <string name="bg_notif_text">Tap to open. Use the button to stop.</string>
     <string name="bg_notif_stop">Stop</string>
+    <string name="show_log">Show log</string>
+    <string name="hide_log">Hide log</string>
 </resources>

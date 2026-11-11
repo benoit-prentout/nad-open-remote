@@ -1,4 +1,4 @@
-# Open Remote for NAD
+# NAD Open Remote
 
 A free, ad-free, open-source Android remote for the **NAD C 338** integrated amplifier, built on the amp's network control port (TCP 30001).
 

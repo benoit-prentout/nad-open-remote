@@ -78,4 +78,6 @@
     <string name="bg_notif_title">Les boutons de volume commandent l\'ampli</string>
     <string name="bg_notif_text">Touchez pour ouvrir. Utilisez le bouton pour arrêter.</string>
     <string name="bg_notif_stop">Arrêter</string>
+    <string name="show_log">Afficher le journal</string>
+    <string name="hide_log">Masquer le journal</string>
 </resources>
