@@ -99,7 +99,7 @@ fun VolumeKnob(value: Float, min: Float, max: Float, onChange: (Float) -> Unit, 
                 val a = ang(change.position)
                 var d = a - last; if (d > 180) d -= 360; if (d < -180) d += 360
                 last = a
-                v = (v + d / 270f * (max - min)).coerceIn(min, max)
+                v = (v + d / 270f * (max - min) * volumeGain(v, max)).coerceIn(min, max)
                 val db = v.roundToInt()
                 if (db != lastDb) { lastDb = db; onTick() }
                 onChange(db.toFloat())

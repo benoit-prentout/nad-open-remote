@@ -84,3 +84,13 @@ class ReconnectTest {
         client.stop(); server.close()
     }
 }
+
+class TaperTest {
+    @Test fun finerWhenLoud() {
+        assertEquals(0.6f, volumeGain(-60f, 12f))
+        assertEquals(0.6f, volumeGain(-45f, 12f))
+        assertTrue(volumeGain(-20f, 12f) < volumeGain(-45f, 12f))
+        assertEquals(0.2f, volumeGain(12f, 12f), 0.001f)
+        assertEquals(0.6f, volumeGain(-10f, -50f)) // limit below the comfort level: never divide by zero
+    }
+}
