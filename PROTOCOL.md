@@ -19,4 +19,11 @@ No code or resources from any third-party app were used.
 | AnalogGain | 0 | effect unknown |
 | Model, Version | NADC338, 1.76 | read-only |
 
-TODO (verify on the amp before implementing): set syntax (`Main.Power=On`), toggles (`Main.Power+`), push notifications on state change, multi-connection behavior.
+## Verified on the amp (no-op writes only)
+
+- Query: `Main.Key?` -> `Main.Key=Value`.
+- Set: `Main.Key=Value` -> echoes `Main.Key=Value`; related changes may follow (e.g. `Main.Volume=` lines).
+- Unknown key: no reply at all (use a read timeout, never wait for an error).
+- Updates are pushed on the open connection (also from the front panel / remote), per earlier two-connection test.
+
+TODO: toggle syntax (`Main.Power+`), volume step commands, exact Source names, behavior on power-off with ControlStandby.
