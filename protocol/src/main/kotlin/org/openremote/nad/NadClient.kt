@@ -23,6 +23,7 @@ class NadClient(
     private val onState: (String, String) -> Unit,
     private val onConnected: (Boolean) -> Unit = {},
     private val pingMs: Long = 5000,
+    private val onEvent: (String) -> Unit = {},
 ) {
     @Volatile private var socket: Socket? = null
     @Volatile private var running = false
@@ -68,13 +69,18 @@ class NadClient(
                 s.soTimeout = (pingMs * 3).toInt() // silence for 3 pings (the amp answers every ping) = dead link
                 socket = s
                 attempt = 0
+                onEvent("connected to $host:$port")
                 onConnected(true)
                 refresh()
                 Thread {
                     try { while (socket === s && running) { Thread.sleep(pingMs); if (socket === s) write("Main.Power?") } } catch (_: InterruptedException) {}
                 }.also { it.isDaemon = true }.start()
                 s.getInputStream().bufferedReader().forEachLine { line -> parseLine(line)?.let { onState(it.first, it.second) } }
-            } catch (_: Exception) {
+                if (running) onEvent("dropped: the amp closed the connection")
+            } catch (e: java.net.SocketTimeoutException) {
+                if (running) onEvent("dropped: no reply for ${pingMs * 3 / 1000} s (Wi-Fi down or amp unreachable)")
+            } catch (e: Exception) {
+                if (running) onEvent(if (socket == null) "connect failed: ${e.javaClass.simpleName} ${e.message ?: ""}" else "dropped: ${e.javaClass.simpleName} ${e.message ?: ""}")
             }
             socket?.close()
             socket = null

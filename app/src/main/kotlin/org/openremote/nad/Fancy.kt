@@ -28,6 +28,12 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.setProgress
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -79,7 +85,7 @@ fun VfdDisplay(sourceLabel: String, on: Boolean, muted: Boolean, volume: Float) 
 
 /** Rotary volume knob: drag in circles (relative, no jumps); one haptic tick per dB. 270 degree sweep. */
 @Composable
-fun VolumeKnob(value: Float, min: Float, max: Float, onChange: (Float) -> Unit, onDone: () -> Unit, onTick: () -> Unit) {
+fun VolumeKnob(value: Float, min: Float, max: Float, description: String, onChange: (Float) -> Unit, onDone: () -> Unit, onTick: () -> Unit) {
     val trackC = MaterialTheme.colorScheme.surfaceContainerHighest
     val activeC = MaterialTheme.colorScheme.primary
     val bodyC = MaterialTheme.colorScheme.surfaceVariant
@@ -88,7 +94,12 @@ fun VolumeKnob(value: Float, min: Float, max: Float, onChange: (Float) -> Unit, 
     val frac = ((value - min) / (max - min)).coerceIn(0f, 1f)
     val current by rememberUpdatedState(value)
     Canvas(
-        Modifier.size(220.dp).pointerInput(min, max) {
+        Modifier.size(220.dp).semantics {
+            contentDescription = description
+            stateDescription = "%.0f dB".format(java.util.Locale.US, value)
+            progressBarRangeInfo = ProgressBarRangeInfo(value, min..max)
+            setProgress { v -> onChange(v.roundToInt().toFloat()); onDone(); true } // TalkBack / switch access: swipe up or down to adjust
+        }.pointerInput(min, max) {
             var last = 0f; var v = 0f; var lastDb = 0
             fun ang(o: Offset) = Math.toDegrees(atan2((o.y - size.height / 2f).toDouble(), (o.x - size.width / 2f).toDouble())).toFloat()
             detectDragGestures(

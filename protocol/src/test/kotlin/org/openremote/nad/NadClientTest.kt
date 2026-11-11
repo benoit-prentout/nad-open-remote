@@ -68,9 +68,11 @@ class ReconnectTest {
         Thread { repeat(2) { val c = server.accept(); c.getInputStream().read(); c.close() } ; while (true) server.accept() }.start()
         val ups = java.util.concurrent.atomic.AtomicInteger()
         val twice = CountDownLatch(2)
-        val client = NadClient("127.0.0.1", server.localPort, { _, _ -> }, { if (it) { ups.incrementAndGet(); twice.countDown() } })
+        val events = java.util.concurrent.CopyOnWriteArrayList<String>()
+        val client = NadClient("127.0.0.1", server.localPort, { _, _ -> }, { if (it) { ups.incrementAndGet(); twice.countDown() } }, onEvent = { events += it })
         client.start()
         assertTrue(twice.await(5, TimeUnit.SECONDS), "should reconnect after the server dropped it")
+        assertTrue(events.any { it.startsWith("dropped") } && events.count { it.startsWith("connected") } >= 2, events.toString())
         client.stop(); server.close()
     }
 

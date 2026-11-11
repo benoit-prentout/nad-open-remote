@@ -26,6 +26,10 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -84,7 +88,8 @@ private fun Header(amp: Amp, onSettings: () -> Unit) = Row(verticalAlignment = A
     IconButton(onSettings) {
         val c = MaterialTheme.colorScheme.onSurfaceVariant
         val bgc = MaterialTheme.colorScheme.background
-        Canvas(Modifier.size(24.dp).semantics { contentDescription = "Settings" }) {
+        val cd = stringResource(R.string.settings)
+        Canvas(Modifier.size(24.dp).semantics { contentDescription = cd }) {
             val w = 2.dp.toPx()
             listOf(0.2f to 0.35f, 0.5f to 0.7f, 0.8f to 0.45f).forEach { (y, x) ->
                 drawLine(c, Offset(0f, size.height * y), Offset(size.width, size.height * y), w, StrokeCap.Round)
@@ -145,6 +150,7 @@ private fun PowerButton(amp: Amp, a: Actions) {
     val bg by animateColorAsState(if (amp.on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, tween(400))
     val fg by animateColorAsState(if (amp.on) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant, tween(400))
     val ring by animateColorAsState(if (amp.on) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.outlineVariant, tween(400))
+    val powerCd = stringResource(R.string.cd_power); val powerState = stringResource(if (amp.on) R.string.on else R.string.off)
     val boot = remember { Animatable(1f) }
     LaunchedEffect(amp.on) { if (amp.on) { boot.snapTo(0f); boot.animateTo(1f, tween(1100, easing = FastOutSlowInEasing)) } }
     val rippleC = MaterialTheme.colorScheme.primary
@@ -155,7 +161,8 @@ private fun PowerButton(amp: Amp, a: Actions) {
         Box(Modifier.size(136.dp).scale(press).border(3.dp, ring, CircleShape), contentAlignment = Alignment.Center) {
             Surface(
                 onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); a.send("Power", if (amp.on) "Off" else "On") },
-                shape = CircleShape, color = bg, modifier = Modifier.size(112.dp), interactionSource = src,
+                shape = CircleShape, color = bg, interactionSource = src,
+                modifier = Modifier.size(112.dp).semantics { contentDescription = powerCd; stateDescription = powerState },
             ) {
                 Canvas(Modifier.padding(34.dp)) {
                     val w = 5.dp.toPx(); val st = Stroke(w, cap = StrokeCap.Round)
@@ -183,7 +190,7 @@ private fun VolumeCard(amp: Amp, a: Actions) {
     ElevatedCard(Modifier.fillMaxWidth(), shape = CARD, colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             VfdDisplay(srcLabel, amp.on, muted, shown)
-            VolumeKnob(shown, -80f, amp.maxVolume,
+            VolumeKnob(shown, -80f, amp.maxVolume, stringResource(R.string.cd_volume),
                 { v -> drag = v; val t = System.currentTimeMillis(); if (t - lastSent >= 80) { lastSent = t; set(v) } }, // live: at most one command per 80 ms
                 { drag?.let { set(it) }; drag = null }, { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) })
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -203,8 +210,8 @@ private fun VolumeCard(amp: Amp, a: Actions) {
 private fun MediaCard(a: Actions) = Section(stringResource(R.string.playback)) {
     val haptic = LocalHapticFeedback.current
     val fg = MaterialTheme.colorScheme.onSurface
-    @Composable fun key(code: Int, kind: String) { val src = remember { MutableInteractionSource() }; FilledTonalIconButton(
-        { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); a.media(code) }, Modifier.size(64.dp).bounce(src), interactionSource = src,
+    @Composable fun key(code: Int, kind: String) { val desc = stringResource(when (kind) { "play" -> R.string.cd_play; "pause" -> R.string.cd_pause; "next" -> R.string.cd_next; else -> R.string.cd_prev }); val src = remember { MutableInteractionSource() }; FilledTonalIconButton(
+        { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); a.media(code) }, Modifier.size(64.dp).bounce(src).semantics { contentDescription = desc }, interactionSource = src,
         colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = fg),
     ) {
         Canvas(Modifier.size(24.dp)) {
@@ -256,12 +263,12 @@ private fun SourceCard(amp: Amp, a: Actions) = Section(stringResource(R.string.s
 
 @Composable
 private fun SoundCard(amp: Amp, a: Actions) = Section(stringResource(R.string.sound)) {
-    @Composable fun row(label: Int, sub: Int, key: String) = Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+    @Composable fun row(label: Int, sub: Int, key: String) = Row(Modifier.fillMaxWidth().toggleable(amp.flag(key), role = Role.Switch) { a.send(key, if (it) "On" else "Off") }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(stringResource(label), style = MaterialTheme.typography.bodyLarge)
             Text(stringResource(sub), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(amp.flag(key), { a.send(key, if (it) "On" else "Off") },
+        Switch(amp.flag(key), null,
             colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.secondary, checkedThumbColor = MaterialTheme.colorScheme.onSecondary, checkedBorderColor = MaterialTheme.colorScheme.secondary))
     }
     row(R.string.bass, R.string.bass_sub, "Bass")
@@ -317,12 +324,12 @@ private fun SettingsSheet(amp: Amp, a: Actions, onClose: () -> Unit) =
             Text(stringResource(R.string.volume_limit_fmt, amp.maxVolume.toInt()), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.volume_limit_sub), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Slider(amp.maxVolume, a.setMaxVolume, valueRange = -40f..12f, steps = 51)
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().toggleable(amp.volKeys, role = Role.Switch, onValueChange = a.setVolKeys), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.vol_keys), style = MaterialTheme.typography.bodyLarge)
                     Text(stringResource(R.string.vol_keys_sub), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Switch(amp.volKeys, a.setVolKeys, colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.secondary, checkedThumbColor = MaterialTheme.colorScheme.onSecondary, checkedBorderColor = MaterialTheme.colorScheme.secondary))
+                Switch(amp.volKeys, null, colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.secondary, checkedThumbColor = MaterialTheme.colorScheme.onSecondary, checkedBorderColor = MaterialTheme.colorScheme.secondary))
             }
             HorizontalDivider()
             Text(stringResource(R.string.amp_section), style = MaterialTheme.typography.titleMedium)
@@ -335,5 +342,28 @@ private fun SettingsSheet(amp: Amp, a: Actions, onClose: () -> Unit) =
             Text(stringResource(R.string.raw_sub), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             OutlinedTextField(raw, { raw = it }, Modifier.fillMaxWidth(), singleLine = true, placeholder = { Text("Main.Key=Value") })
             Button({ a.raw(raw.trim()); raw = "" }, enabled = raw.startsWith("Main."), modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.send)) }
+            HorizontalDivider()
+            ConnectionLog()
         }
     }
+
+@Composable
+private fun ConnectionLog() {
+    val ctx = LocalContext.current
+    val lines = ConnLog.lines
+    Text(stringResource(R.string.conn_log), style = MaterialTheme.typography.bodyLarge)
+    Text(stringResource(R.string.conn_log_sub), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+        Text(
+            if (lines.isEmpty()) stringResource(R.string.log_empty) else lines.takeLast(30).reversed().joinToString("\n"),
+            Modifier.padding(12.dp), fontSize = 11.sp, lineHeight = 15.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+        )
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedButton({
+            val cm = ctx.getSystemService(android.content.ClipboardManager::class.java)
+            cm.setPrimaryClip(android.content.ClipData.newPlainText("log", lines.joinToString("\n")))
+        }, enabled = lines.isNotEmpty()) { Text(stringResource(R.string.copy)) }
+        OutlinedButton({ ConnLog.clear(ctx) }, enabled = lines.isNotEmpty()) { Text(stringResource(R.string.clear)) }
+    }
+}

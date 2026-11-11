@@ -74,6 +74,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(b: Bundle?) {
         super.onCreate(b)
         prefs = getSharedPreferences("p", MODE_PRIVATE)
+        ConnLog.load(this)
         amp.maxVolume = prefs.getFloat("maxVol", 12f)
         amp.volKeys = prefs.getBoolean("volKeys", true)
         amp.theme = runCatching { ThemeChoice.valueOf(prefs.getString("theme", "")!!) }.getOrDefault(ThemeChoice.System)
@@ -122,7 +123,7 @@ class MainActivity : ComponentActivity() {
         prefs.edit().putString("ip", h).putInt("port", port).apply()
         client?.stop()
         var ever = false
-        client = NadClient(h, port, onState = { k, v -> runOnUiThread { amp.s[k] = v } }, onConnected = { ok ->
+        client = NadClient(h, port, onState = { k, v -> runOnUiThread { amp.s[k] = v } }, onEvent = { ConnLog.add(this, it) }, onConnected = { ok ->
             runOnUiThread {
                 if (ok) ever = true
                 ui.removeCallbacks(markDown)

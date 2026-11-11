@@ -63,4 +63,17 @@
     <string name="standby">Veille</string>
     <string name="vol_keys">Boutons de volume du téléphone</string>
     <string name="vol_keys_sub">Quand l\'appli est ouverte, ils commandent l\'ampli et non le téléphone.</string>
+    <string name="cd_power">Alimentation</string>
+    <string name="cd_prev">Titre précédent</string>
+    <string name="cd_play">Lecture</string>
+    <string name="cd_pause">Pause</string>
+    <string name="cd_next">Titre suivant</string>
+    <string name="cd_volume">Volume</string>
+    <string name="on">Allumé</string>
+    <string name="off">Éteint</string>
+    <string name="conn_log">Journal de connexion</string>
+    <string name="conn_log_sub">Chaque connexion et coupure avec sa cause et le signal Wi-Fi, conservé sur ce téléphone. Copiez-le pour diagnostiquer un problème.</string>
+    <string name="log_empty">Rien d\'enregistré pour l\'instant.</string>
+    <string name="copy">Copier</string>
+    <string name="clear">Effacer</string>
 </resources>
