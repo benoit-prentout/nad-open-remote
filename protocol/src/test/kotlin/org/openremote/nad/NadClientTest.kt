@@ -52,3 +52,12 @@ class DiscoveryTest {
         amp.close(); silent.close()
     }
 }
+
+class AddressTest {
+    @Test fun parses() {
+        assertEquals("192.168.1.30" to 30001, parseAddress(" 192.168.1.30 "))
+        assertEquals("amp.local" to 4000, parseAddress("nad://amp.local:4000/x"))
+        assertEquals("10.0.0.2" to 30001, parseAddress("http://10.0.0.2/"))
+        assertNull(parseAddress("")); assertNull(parseAddress("a b")); assertNull(parseAddress("host:99999")); assertNull(parseAddress("host:abc"))
+    }
+}
