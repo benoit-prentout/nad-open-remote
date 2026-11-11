@@ -172,14 +172,20 @@ private fun VolumeCard(amp: Amp, a: Actions) {
     val haptic = LocalHapticFeedback.current
     val vol = amp.volume ?: -80f
     var drag by remember { mutableStateOf<Float?>(null) }
-    val shown = (drag ?: vol).coerceAtMost(amp.maxVolume)
-    fun set(v: Float) = a.send("Volume", "%.1f".format(java.util.Locale.US, v.coerceIn(-80f, amp.maxVolume)))
+    var pending by remember { mutableStateOf<Float?>(null) } // last value we sent, shown until the amp echoes it back
+    var lastSent by remember { mutableStateOf(0L) }
+    LaunchedEffect(pending) { if (pending != null) { kotlinx.coroutines.delay(1200); pending = null } }
+    LaunchedEffect(vol) { if (pending != null && kotlin.math.abs(vol - pending!!) < 0.05f) pending = null }
+    val shown = (drag ?: pending ?: vol).coerceAtMost(amp.maxVolume)
+    fun set(v: Float) { pending = v; a.send("Volume", "%.1f".format(java.util.Locale.US, v.coerceIn(-80f, amp.maxVolume))) }
     val muted = amp.flag("Mute")
     val srcLabel = SOURCES.firstOrNull { it.first == amp.s["Source"] }?.second?.let { stringResource(it) } ?: (amp.s["Source"] ?: "")
     ElevatedCard(Modifier.fillMaxWidth(), shape = CARD, colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             VfdDisplay(srcLabel, amp.on, muted, shown)
-            VolumeKnob(shown, -80f, amp.maxVolume, { drag = it }, { drag?.let { set(it) }; drag = null }, { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) })
+            VolumeKnob(shown, -80f, amp.maxVolume,
+                { v -> drag = v; val t = System.currentTimeMillis(); if (t - lastSent >= 80) { lastSent = t; set(v) } }, // live: at most one command per 80 ms
+                { drag?.let { set(it) }; drag = null }, { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) })
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 val btn = IconButtonDefaults.filledTonalIconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurface)
                 val s1 = remember { MutableInteractionSource() }; val s2 = remember { MutableInteractionSource() }
@@ -311,6 +317,13 @@ private fun SettingsSheet(amp: Amp, a: Actions, onClose: () -> Unit) =
             Text(stringResource(R.string.volume_limit_fmt, amp.maxVolume.toInt()), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.volume_limit_sub), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Slider(amp.maxVolume, a.setMaxVolume, valueRange = -40f..12f, steps = 51)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.vol_keys), style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.vol_keys_sub), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Switch(amp.volKeys, a.setVolKeys, colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.secondary, checkedThumbColor = MaterialTheme.colorScheme.onSecondary, checkedBorderColor = MaterialTheme.colorScheme.secondary))
+            }
             HorizontalDivider()
             Text(stringResource(R.string.amp_section), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.amp_address_fmt, amp.host))

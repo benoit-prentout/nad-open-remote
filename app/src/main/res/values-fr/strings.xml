@@ -61,4 +61,6 @@
     <string name="made_for">Pour le NAD C 338</string>
     <string name="theme_amoled">AMOLED</string>
     <string name="standby">Veille</string>
+    <string name="vol_keys">Boutons de volume du téléphone</string>
+    <string name="vol_keys_sub">Quand l\'appli est ouverte, ils commandent l\'ampli et non le téléphone.</string>
 </resources>

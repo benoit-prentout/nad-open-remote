@@ -70,4 +70,6 @@
     <string name="made_for">For the NAD C 338</string>
     <string name="theme_amoled">AMOLED</string>
     <string name="standby">Standby</string>
+    <string name="vol_keys">Phone volume buttons</string>
+    <string name="vol_keys_sub">While the app is open, they control the amp instead of the phone.</string>
 </resources>

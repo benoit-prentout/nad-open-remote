@@ -24,6 +24,7 @@ class Amp {
     var message by mutableStateOf<Int?>(null)
     var found by mutableStateOf<Map<String, String>>(emptyMap())
     var maxVolume by mutableStateOf(12f)
+    var volKeys by mutableStateOf(true)
     var host by mutableStateOf("")
     var theme by mutableStateOf(ThemeChoice.System)
     var lang by mutableStateOf("system")
@@ -34,13 +35,33 @@ class Amp {
 
 class Actions(
     val send: (String, String) -> Unit, val raw: (String) -> Unit, val find: () -> Unit, val connect: (String, Int) -> Unit,
-    val media: (Int) -> Unit, val forget: () -> Unit, val setTheme: (ThemeChoice) -> Unit, val setLang: (String) -> Unit, val setMaxVolume: (Float) -> Unit,
+    val media: (Int) -> Unit, val forget: () -> Unit, val setTheme: (ThemeChoice) -> Unit, val setLang: (String) -> Unit, val setMaxVolume: (Float) -> Unit, val setVolKeys: (Boolean) -> Unit,
 )
 
 class MainActivity : ComponentActivity() {
     private var client: NadClient? = null
     private val amp = Amp()
     private lateinit var prefs: android.content.SharedPreferences
+    private val ui = android.os.Handler(android.os.Looper.getMainLooper())
+    private val markDown = Runnable { amp.connected = false }
+    private var keyVol = Float.NaN
+    private var keyAt = 0L
+
+    override fun onStart() { super.onStart(); client?.reconnectNow() }
+
+    // Phone volume buttons drive the amp while the app is open. ponytail: foreground only; background needs a MediaSession service.
+    private fun volumeKey(code: Int): Boolean {
+        val up = code == android.view.KeyEvent.KEYCODE_VOLUME_UP
+        if (!amp.volKeys || !amp.connected || (!up && code != android.view.KeyEvent.KEYCODE_VOLUME_DOWN)) return false
+        val now = System.currentTimeMillis()
+        val base = if (now - keyAt < 700 && !keyVol.isNaN()) keyVol else amp.volume ?: return false
+        keyVol = (base + if (up) 1 else -1).coerceIn(-80f, amp.maxVolume); keyAt = now
+        client?.set("Volume", "%.1f".format(Locale.US, keyVol))
+        return true
+    }
+    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent): Boolean = volumeKey(keyCode) || super.onKeyDown(keyCode, event)
+    override fun onKeyUp(keyCode: Int, event: android.view.KeyEvent): Boolean =
+        (amp.volKeys && amp.connected && (keyCode == android.view.KeyEvent.KEYCODE_VOLUME_UP || keyCode == android.view.KeyEvent.KEYCODE_VOLUME_DOWN)) || super.onKeyUp(keyCode, event)
 
     override fun attachBaseContext(base: Context) {
         val lang = base.getSharedPreferences("p", MODE_PRIVATE).getString("lang", "system") ?: "system"
@@ -54,6 +75,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(b)
         prefs = getSharedPreferences("p", MODE_PRIVATE)
         amp.maxVolume = prefs.getFloat("maxVol", 12f)
+        amp.volKeys = prefs.getBoolean("volKeys", true)
         amp.theme = runCatching { ThemeChoice.valueOf(prefs.getString("theme", "")!!) }.getOrDefault(ThemeChoice.System)
         amp.lang = prefs.getString("lang", "system") ?: "system"
         // debug builds only: `am start --es theme Dracula` previews a theme without saving it (used for screenshots)
@@ -78,6 +100,7 @@ class MainActivity : ComponentActivity() {
             setTheme = { amp.theme = it; prefs.edit().putString("theme", it.name).apply() },
             setLang = { prefs.edit().putString("lang", it).apply(); recreate() },
             setMaxVolume = { amp.maxVolume = it; prefs.edit().putFloat("maxVol", it).apply() },
+            setVolKeys = { amp.volKeys = it; prefs.edit().putBoolean("volKeys", it).apply() },
         )
         setContent {
             val dark = if (amp.theme == ThemeChoice.System) isSystemInDarkTheme() else amp.theme.isDark
@@ -102,8 +125,9 @@ class MainActivity : ComponentActivity() {
         client = NadClient(h, port, onState = { k, v -> runOnUiThread { amp.s[k] = v } }, onConnected = { ok ->
             runOnUiThread {
                 if (ok) ever = true
-                amp.connected = ok
-                if (!ok && !ever && rescanIfUnreachable) { client?.stop(); find(R.string.unreachable) }
+                ui.removeCallbacks(markDown)
+                if (ok) amp.connected = true else ui.postDelayed(markDown, 2500) // brief drops stay invisible
+                if (!ok && !ever && rescanIfUnreachable) { client?.stop(); ui.removeCallbacks(markDown); amp.connected = false; find(R.string.unreachable) }
             }
         }).also { it.start() }
     }

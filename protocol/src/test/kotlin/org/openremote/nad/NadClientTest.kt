@@ -61,3 +61,26 @@ class AddressTest {
         assertNull(parseAddress("")); assertNull(parseAddress("a b")); assertNull(parseAddress("host:99999")); assertNull(parseAddress("host:abc"))
     }
 }
+
+class ReconnectTest {
+    @Test fun reconnectsAfterDrop() {
+        val server = ServerSocket(0, 50, java.net.InetAddress.getByName("127.0.0.1"))
+        Thread { repeat(2) { val c = server.accept(); c.getInputStream().read(); c.close() } ; while (true) server.accept() }.start()
+        val ups = java.util.concurrent.atomic.AtomicInteger()
+        val twice = CountDownLatch(2)
+        val client = NadClient("127.0.0.1", server.localPort, { _, _ -> }, { if (it) { ups.incrementAndGet(); twice.countDown() } })
+        client.start()
+        assertTrue(twice.await(5, TimeUnit.SECONDS), "should reconnect after the server dropped it")
+        client.stop(); server.close()
+    }
+
+    @Test fun silentLinkIsDetectedByTimeout() {
+        val server = ServerSocket(0, 50, java.net.InetAddress.getByName("127.0.0.1"))
+        Thread { while (true) server.accept() }.start() // accepts and never answers
+        val down = CountDownLatch(1)
+        val client = NadClient("127.0.0.1", server.localPort, { _, _ -> }, { if (!it) down.countDown() }, pingMs = 100)
+        client.start()
+        assertTrue(down.await(3, TimeUnit.SECONDS), "300 ms of silence must be seen as a dead link")
+        client.stop(); server.close()
+    }
+}
