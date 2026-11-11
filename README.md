@@ -1,3 +1,7 @@
+<p align="center"><img src="docs/banner.png" alt="NAD Open Remote" width="100%"></p>
+
+<p align="center"><img src="docs/logo.png" alt="" width="96"></p>
+
 # NAD Open Remote
 
 A free, ad-free, open-source Android remote for the **NAD C 338** integrated amplifier, built on the amp's network control port (TCP 30001).
@@ -5,6 +9,19 @@ A free, ad-free, open-source Android remote for the **NAD C 338** integrated amp
 > **Unofficial.** Not affiliated with, endorsed by or sponsored by NAD Electronics or Lenbrook. "NAD" is their trademark, used here only to say which amplifier the app is for.
 
 Tested only on a **NAD C 338** (firmware 1.76). Other NAD amps that speak the same `Main.*` text protocol on that port may work: use *Add by address* to try a host and port. Reports welcome.
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/main-nad.png" width="23%" alt="NAD theme">
+  <img src="docs/screenshots/main-dracula.png" width="23%" alt="Dracula theme">
+  <img src="docs/screenshots/main-light.png" width="23%" alt="Light theme">
+  <img src="docs/screenshots/main-amoled.png" width="23%" alt="AMOLED theme">
+</p>
+<p align="center">
+  <img src="docs/screenshots/sources-and-settings-nad.png" width="23%" alt="Sources and amp settings">
+  <img src="docs/screenshots/settings.png" width="23%" alt="App settings">
+</p>
 
 ## Features
 
