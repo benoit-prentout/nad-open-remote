@@ -68,4 +68,5 @@
     <string name="playback">Playback</string>
     <string name="playback_sub">Controls the music app playing on this phone (Qobuz, Spotify…), including when it casts to the amp. The amp itself has no playback commands.</string>
     <string name="made_for">For the NAD C 338</string>
+    <string name="theme_amoled">AMOLED</string>
 </resources>

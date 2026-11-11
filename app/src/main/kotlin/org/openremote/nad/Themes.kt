@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 enum class ThemeChoice(val label: Int) {
-    System(R.string.theme_system), Light(R.string.theme_light), Dark(R.string.theme_dark), Nad(R.string.theme_nad), Dracula(R.string.theme_dracula)
+    System(R.string.theme_system), Light(R.string.theme_light), Dark(R.string.theme_dark), Amoled(R.string.theme_amoled), Nad(R.string.theme_nad), Dracula(R.string.theme_dracula)
 }
 
 private fun c(hex: Long) = Color(0xFF000000 or hex)
@@ -35,6 +35,20 @@ private val DarkScheme = darkColorScheme(
     surfaceContainerLow = c(0x1C1C1F), surfaceContainer = c(0x1C1C1F), surfaceContainerHighest = c(0x333338),
     surfaceVariant = c(0x2A2A2E), onSurfaceVariant = c(0xAAAAB1),
     outline = c(0x84848B), outlineVariant = c(0x44444A),
+)
+
+// AMOLED: true black background so OLED pixels switch off; cards barely lifted from it.
+private val AmoledScheme = darkColorScheme(
+    primary = c(0xFF5449), onPrimary = Color.White,
+    primaryContainer = c(0x4A1210), onPrimaryContainer = c(0xFFDAD5),
+    secondary = c(0xECECEF), onSecondary = Color.Black,
+    secondaryContainer = c(0xECECEF), onSecondaryContainer = Color.Black,
+    tertiary = c(0xFF6B61),
+    background = Color.Black, onBackground = c(0xF2F2F4),
+    surface = c(0x0F0F11), onSurface = c(0xF2F2F4), surfaceTint = c(0x0F0F11),
+    surfaceContainerLow = c(0x0F0F11), surfaceContainer = c(0x0F0F11), surfaceContainerHighest = c(0x26262A),
+    surfaceVariant = c(0x1B1B1E), onSurfaceVariant = c(0xA6A6AD),
+    outline = c(0x7E7E85), outlineVariant = c(0x2E2E33),
 )
 
 // NAD-inspired: anchors #0D0D0D / #212123 / #EE2E25 / #FFFFFF. Graphite and white like the front panel;
@@ -79,6 +93,7 @@ fun AmpTheme(choice: ThemeChoice, content: @Composable () -> Unit) {
         }
         ThemeChoice.Light -> LightScheme
         ThemeChoice.Dark -> DarkScheme
+        ThemeChoice.Amoled -> AmoledScheme
         ThemeChoice.Nad -> NadScheme
         ThemeChoice.Dracula -> DraculaScheme
     }

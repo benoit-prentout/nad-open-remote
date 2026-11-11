@@ -74,9 +74,9 @@ fun Screen(amp: Amp, a: Actions) {
 @Composable
 private fun Header(amp: Amp, onSettings: () -> Unit) = Row(verticalAlignment = Alignment.CenterVertically) {
     Column(Modifier.weight(1f)) {
-        Text(stringResource(R.string.title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Text(
-            if (amp.connected) stringResource(R.string.connected_fmt, amp.s["Model"] ?: "") else stringResource(R.string.not_connected) + " · " + stringResource(R.string.made_for),
+            if (amp.connected) stringResource(R.string.connected_fmt, amp.s["Model"] ?: "") else stringResource(R.string.not_connected),
             style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
