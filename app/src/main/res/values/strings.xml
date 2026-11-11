@@ -36,7 +36,7 @@
     <string name="autosense_sub">Switch to the input that plays</string>
     <string name="autostandby">Auto standby</string>
     <string name="autostandby_sub">Sleep after 20 min idle</string>
-    <string name="controlstandby">Network control in standby</string>
+    <string name="controlstandby">Network control in standby (set by the amp)</string>
     <string name="controlstandby_sub">Keep the amp reachable</string>
     <string name="brightness">Display brightness</string>
     <string name="br_off">Off</string>
@@ -47,7 +47,7 @@
     <string name="model">Model</string>
     <string name="firmware">Firmware</string>
     <string name="analog_gain">Analog gain (read-only)</string>
-    <string name="disclaimer">Unofficial. Not affiliated with NAD Electronics.</string>
+    <string name="disclaimer">Made for the NAD C 338. Other NAD amps with the same network protocol may work but are untested. Unofficial, not affiliated with NAD Electronics.</string>
     <string name="appearance">Appearance</string>
     <string name="theme_system">Device</string>
     <string name="theme_light">Light</string>
@@ -65,4 +65,7 @@
     <string name="raw_title">Raw command</string>
     <string name="raw_sub">For experts. Sent as typed, for example Main.Brightness=1. An unknown command gets no reply.</string>
     <string name="send">Send</string>
+    <string name="playback">Playback</string>
+    <string name="playback_sub">Controls the music app playing on this phone (Qobuz, Spotify…), including when it casts to the amp. The amp itself has no playback commands.</string>
+    <string name="made_for">For the NAD C 338</string>
 </resources>

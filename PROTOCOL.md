@@ -27,3 +27,7 @@ No code or resources from any third-party app were used.
 - Updates are pushed on the open connection (also from the front panel / remote), per earlier two-connection test.
 
 TODO: toggle syntax (`Main.Power+`), volume step commands, exact Source names, behavior on power-off with ControlStandby.
+
+Note: `Main.ControlStandby` and `Main.AnalogGain` are read-only on the C 338: a set gets no reply and `Main?` shows the value unchanged (verified).
+
+Note: `Main.ControlStandby` and `Main.AnalogGain` are read-only on the C 338: a set gets no reply and `Main?` shows the value unchanged (verified).

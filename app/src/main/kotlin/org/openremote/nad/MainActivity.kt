@@ -34,7 +34,7 @@ class Amp {
 
 class Actions(
     val send: (String, String) -> Unit, val raw: (String) -> Unit, val find: () -> Unit, val connect: (String, Int) -> Unit,
-    val forget: () -> Unit, val setTheme: (ThemeChoice) -> Unit, val setLang: (String) -> Unit, val setMaxVolume: (Float) -> Unit,
+    val media: (Int) -> Unit, val forget: () -> Unit, val setTheme: (ThemeChoice) -> Unit, val setLang: (String) -> Unit, val setMaxVolume: (Float) -> Unit,
 )
 
 class MainActivity : ComponentActivity() {
@@ -66,6 +66,11 @@ class MainActivity : ComponentActivity() {
 
         val actions = Actions(
             send = { k, v -> client?.set(k, v) }, raw = { client?.sendRaw(it) }, find = ::find, connect = { h, p -> connect(h, p) },
+            media = { code ->
+                val am = getSystemService(android.media.AudioManager::class.java)
+                am.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, code))
+                am.dispatchMediaKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, code))
+            },
             forget = {
                 client?.stop(); amp.connected = false; amp.s.clear(); amp.host = ""; amp.found = emptyMap(); amp.message = null
                 prefs.edit().remove("ip").remove("port").apply()

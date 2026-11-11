@@ -29,7 +29,7 @@
     <string name="autosense_sub">Bascule sur l\'entrée qui joue</string>
     <string name="autostandby">Veille automatique</string>
     <string name="autostandby_sub">Veille après 20 min d\'inactivité</string>
-    <string name="controlstandby">Contrôle réseau en veille</string>
+    <string name="controlstandby">Contrôle réseau en veille (fixé par l\'ampli)</string>
     <string name="controlstandby_sub">Garde l\'ampli joignable</string>
     <string name="brightness">Luminosité de l\'afficheur</string>
     <string name="br_off">Éteint</string>
@@ -40,7 +40,7 @@
     <string name="model">Modèle</string>
     <string name="firmware">Firmware</string>
     <string name="analog_gain">Gain analogique (lecture seule)</string>
-    <string name="disclaimer">Non officiel. Sans lien avec NAD Electronics.</string>
+    <string name="disclaimer">Conçu pour le NAD C 338. D\'autres amplis NAD au même protocole réseau peuvent fonctionner, sans garantie. Non officiel, sans lien avec NAD Electronics.</string>
     <string name="appearance">Apparence</string>
     <string name="theme_system">Appareil</string>
     <string name="theme_light">Clair</string>
@@ -56,4 +56,7 @@
     <string name="raw_title">Commande brute</string>
     <string name="raw_sub">Pour les experts. Envoyée telle quelle, par exemple Main.Brightness=1. Une commande inconnue reste sans réponse.</string>
     <string name="send">Envoyer</string>
+    <string name="playback">Lecture</string>
+    <string name="playback_sub">Commande l\'appli de musique qui joue sur ce téléphone (Qobuz, Spotify…), y compris quand elle diffuse vers l\'ampli. L\'ampli n\'a pas de commandes de lecture.</string>
+    <string name="made_for">Pour le NAD C 338</string>
 </resources>
