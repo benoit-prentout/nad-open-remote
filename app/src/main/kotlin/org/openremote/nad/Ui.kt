@@ -31,6 +31,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -144,7 +145,13 @@ private fun PowerButton(amp: Amp, a: Actions) {
     val bg by animateColorAsState(if (amp.on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, tween(400))
     val fg by animateColorAsState(if (amp.on) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant, tween(400))
     val ring by animateColorAsState(if (amp.on) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.outlineVariant, tween(400))
+    val boot = remember { Animatable(1f) }
+    LaunchedEffect(amp.on) { if (amp.on) { boot.snapTo(0f); boot.animateTo(1f, tween(1100, easing = FastOutSlowInEasing)) } }
+    val rippleC = MaterialTheme.colorScheme.primary
     Box(Modifier.fillMaxWidth().height(148.dp), contentAlignment = Alignment.Center) {
+        Canvas(Modifier.size(148.dp)) {
+            if (boot.value < 1f) drawCircle(rippleC.copy(alpha = (1f - boot.value) * 0.6f), size.minDimension / 2 * (0.7f + 0.3f * boot.value), style = Stroke(4.dp.toPx()))
+        }
         Box(Modifier.size(136.dp).scale(press).border(3.dp, ring, CircleShape), contentAlignment = Alignment.Center) {
             Surface(
                 onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); a.send("Power", if (amp.on) "Off" else "On") },
@@ -168,25 +175,19 @@ private fun VolumeCard(amp: Amp, a: Actions) {
     val shown = (drag ?: vol).coerceAtMost(amp.maxVolume)
     fun set(v: Float) = a.send("Volume", "%.1f".format(java.util.Locale.US, v.coerceIn(-80f, amp.maxVolume)))
     val muted = amp.flag("Mute")
+    val srcLabel = SOURCES.firstOrNull { it.first == amp.s["Source"] }?.second?.let { stringResource(it) } ?: (amp.s["Source"] ?: "")
     ElevatedCard(Modifier.fillMaxWidth(), shape = CARD, colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
-        Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text("%.1f".format(shown), fontSize = 60.sp, fontWeight = FontWeight.Light,
-                    style = TextStyle(fontFeatureSettings = "tnum"), color = if (muted) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface)
-                Text(" dB", Modifier.padding(bottom = 12.dp), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Text(if (muted) stringResource(R.string.muted).uppercase() else " ", style = MaterialTheme.typography.labelLarge, letterSpacing = 1.5.sp,
-                color = MaterialTheme.colorScheme.tertiary.takeIf { muted } ?: MaterialTheme.colorScheme.onSurfaceVariant)
-            Slider(shown, { drag = it }, Modifier.fillMaxWidth(), valueRange = -80f..amp.maxVolume,
-                onValueChangeFinished = { drag?.let { set(it) }; drag = null },
-                colors = SliderDefaults.colors(inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest))
+        Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            VfdDisplay(srcLabel, amp.on, muted, shown)
+            VolumeKnob(shown, -80f, amp.maxVolume, { drag = it }, { drag?.let { set(it) }; drag = null }, { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) })
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 val btn = IconButtonDefaults.filledTonalIconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurface)
-                FilledTonalIconButton({ haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); set(vol - 1) }, Modifier.size(56.dp), colors = btn) { Text("−", fontSize = 24.sp) }
+                val s1 = remember { MutableInteractionSource() }; val s2 = remember { MutableInteractionSource() }
+                FilledTonalIconButton({ haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); set(vol - 1) }, Modifier.size(56.dp).bounce(s1), colors = btn, interactionSource = s1) { Text("−", fontSize = 24.sp) }
                 FilterChip(muted, { a.send("Mute", if (muted) "Off" else "On") }, { Text(stringResource(R.string.mute)) }, Modifier.height(56.dp),
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primaryContainer, selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer, ),
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primaryContainer, selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer),
                     shape = RoundedCornerShape(28.dp))
-                FilledTonalIconButton({ haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); set(vol + 1) }, Modifier.size(56.dp), colors = btn) { Text("+", fontSize = 24.sp) }
+                FilledTonalIconButton({ haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); set(vol + 1) }, Modifier.size(56.dp).bounce(s2), colors = btn, interactionSource = s2) { Text("+", fontSize = 24.sp) }
             }
         }
     }
@@ -196,8 +197,8 @@ private fun VolumeCard(amp: Amp, a: Actions) {
 private fun MediaCard(a: Actions) = Section(stringResource(R.string.playback)) {
     val haptic = LocalHapticFeedback.current
     val fg = MaterialTheme.colorScheme.onSurface
-    @Composable fun key(code: Int, kind: String) = FilledTonalIconButton(
-        { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); a.media(code) }, Modifier.size(64.dp),
+    @Composable fun key(code: Int, kind: String) { val src = remember { MutableInteractionSource() }; FilledTonalIconButton(
+        { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); a.media(code) }, Modifier.size(64.dp).bounce(src), interactionSource = src,
         colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = fg),
     ) {
         Canvas(Modifier.size(24.dp)) {
@@ -211,7 +212,7 @@ private fun MediaCard(a: Actions) = Section(stringResource(R.string.playback)) {
                 else -> { drawPath(triL(w * 0.25f, w), fg); drawRect(fg, Offset(0f, 0f), Size(w * 0.18f, h)) }
             }
         }
-    }
+    } }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
         key(android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS, "prev")
         key(android.view.KeyEvent.KEYCODE_MEDIA_PLAY, "play")
@@ -223,16 +224,24 @@ private fun MediaCard(a: Actions) = Section(stringResource(R.string.playback)) {
 
 @Composable
 private fun SourceCard(amp: Amp, a: Actions) = Section(stringResource(R.string.source)) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SOURCES.chunked(4).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { (key, label) ->
-                    val sel = amp.s["Source"] == key
-                    Surface(
-                        onClick = { a.send("Source", key) }, Modifier.weight(1f).height(52.dp), shape = RoundedCornerShape(16.dp),
-                        color = if (sel) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = if (sel) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
-                    ) { Box(contentAlignment = Alignment.Center) { Text(stringResource(label), fontSize = 13.sp, maxLines = 1, textAlign = TextAlign.Center, fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Normal) } }
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val gap = 8.dp; val cellH = 52.dp; val cellW = (maxWidth - gap * 3) / 4
+        val idx = SOURCES.indexOfFirst { it.first == amp.s["Source"] }
+        val x by animateDpAsState((cellW + gap) * (idx.coerceAtLeast(0) % 4), spring(0.7f, 450f), label = "px")
+        val y by animateDpAsState((cellH + gap) * (idx.coerceAtLeast(0) / 4), spring(0.7f, 450f), label = "py")
+        if (idx >= 0) Box(Modifier.offset(x, y).size(cellW, cellH).background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(16.dp)))
+        Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+            SOURCES.chunked(4).forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                    row.forEach { (key, label) ->
+                        val sel = amp.s["Source"] == key
+                        val src = remember { MutableInteractionSource() }
+                        Surface(
+                            onClick = { a.send("Source", key) }, Modifier.weight(1f).height(cellH).bounce(src), shape = RoundedCornerShape(16.dp), interactionSource = src,
+                            color = if (sel) Color.Transparent else MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = if (sel) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
+                        ) { Box(contentAlignment = Alignment.Center) { Text(stringResource(label), fontSize = 13.sp, maxLines = 1, textAlign = TextAlign.Center, fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Normal) } }
+                    }
                 }
             }
         }

@@ -60,4 +60,5 @@
     <string name="playback_sub">Commande l\'appli de musique qui joue sur ce téléphone (Qobuz, Spotify…), y compris quand elle diffuse vers l\'ampli. L\'ampli n\'a pas de commandes de lecture.</string>
     <string name="made_for">Pour le NAD C 338</string>
     <string name="theme_amoled">AMOLED</string>
+    <string name="standby">Veille</string>
 </resources>
