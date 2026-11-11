@@ -7,7 +7,7 @@
     <string name="find_title">Find your amp</string>
     <string name="search">Search my network</string>
     <string name="searching">Searching your network…</string>
-    <string name="none_found">No amp found. Add it by address below.</string>
+    <string name="none_found">No amp found yet. Check that it is on: this screen keeps looking, or add it by address below.</string>
     <string name="amps_found">Amps found</string>
     <string name="manual_title">Add by address</string>
     <string name="manual_label">Address or URL</string>

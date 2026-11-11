@@ -7,7 +7,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /** Asks one host for its model; returns e.g. "NADC338" or null if it is not an amp. */
-fun probe(host: String, port: Int = 30001, timeoutMs: Int = 700): String? = try {
+fun probe(host: String, port: Int = 30001, timeoutMs: Int = 1500): String? = try {
     Socket().use { s ->
         s.connect(InetSocketAddress(host, port), timeoutMs)
         s.soTimeout = timeoutMs
@@ -18,6 +18,11 @@ fun probe(host: String, port: Int = 30001, timeoutMs: Int = 700): String? = try 
 
 /** Tries every host in parallel; returns host to model for those that answered. */
 fun scan(hosts: List<String>, port: Int = 30001): Map<String, String> {
+    val first = scanOnce(hosts, port)
+    return if (first.isNotEmpty()) first else scanOnce(hosts, port) // a slow or just-booted amp can miss one pass
+}
+
+private fun scanOnce(hosts: List<String>, port: Int): Map<String, String> {
     val pool = Executors.newFixedThreadPool(64)
     val found = java.util.concurrent.ConcurrentHashMap<String, String>()
     hosts.forEach { h -> pool.execute { probe(h, port)?.let { found[h] = it } } }

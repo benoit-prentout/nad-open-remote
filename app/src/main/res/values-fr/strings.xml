@@ -6,7 +6,7 @@
     <string name="find_title">Trouver votre ampli</string>
     <string name="search">Chercher sur mon réseau</string>
     <string name="searching">Recherche sur votre réseau…</string>
-    <string name="none_found">Aucun ampli trouvé. Ajoutez-le par son adresse ci-dessous.</string>
+    <string name="none_found">Aucun ampli trouvé pour l\'instant. Vérifiez qu\'il est allumé : cet écran continue de chercher, ou ajoutez-le par son adresse ci-dessous.</string>
     <string name="amps_found">Amplis trouvés</string>
     <string name="manual_title">Ajouter par adresse</string>
     <string name="manual_label">Adresse ou URL</string>

@@ -58,7 +58,12 @@ class MainActivity : ComponentActivity() {
         if (!prefs.getString("ip", "").isNullOrBlank()) VolumeKeyService.start(this)
     }
 
+    // Nothing found (amp still booting, in standby, Wi-Fi slow): keep looking every 15 s while this screen is open.
+    private val rescan = Runnable { if (!amp.connected && amp.s.isEmpty() && !amp.scanning) find(R.string.searching) }
+    private fun scheduleRescan() { ui.removeCallbacks(rescan); ui.postDelayed(rescan, 15000) }
+
     override fun onStart() { super.onStart(); client?.reconnectNow() }
+    override fun onStop() { ui.removeCallbacks(rescan); super.onStop() }
 
     // Phone volume buttons drive the amp while the app is open. ponytail: foreground only; background needs a MediaSession service.
     private fun volumeKey(code: Int): Boolean {
@@ -137,7 +142,7 @@ class MainActivity : ComponentActivity() {
                 if (ok) ever = true
                 ui.removeCallbacks(markDown)
                 if (ok) amp.connected = true else ui.postDelayed(markDown, 2500) // brief drops stay invisible
-                if (!ok && !ever && rescanIfUnreachable) { client?.stop(); ui.removeCallbacks(markDown); amp.connected = false; find(R.string.unreachable) }
+                if (!ok && !ever && rescanIfUnreachable && !amp.scanning) { ui.removeCallbacks(markDown); amp.connected = false; find(R.string.unreachable) } // the saved client keeps retrying meanwhile
             }
         }).also { it.start() }
     }
@@ -150,7 +155,7 @@ class MainActivity : ComponentActivity() {
             runOnUiThread {
                 amp.scanning = false
                 when (hits.size) {
-                    0 -> amp.message = R.string.none_found
+                    0 -> { amp.message = R.string.none_found; scheduleRescan() }
                     1 -> connect(hits.keys.first(), 30001)
                     else -> { amp.message = null; amp.found = hits }
                 }
