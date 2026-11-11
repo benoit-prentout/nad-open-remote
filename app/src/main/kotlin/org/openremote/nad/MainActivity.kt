@@ -35,13 +35,19 @@ class MainActivity : Activity() {
         col.addView(btn("Volume +") { volume(1.0) })
         col.addView(btn("Volume −") { volume(-1.0) })
         col.addView(btn("Mute") { send("Mute", if (state["Mute"] == "On") "Off" else "On") })
-        col.addView(btn("Bass EQ") { send("Bass", if (state["Bass"] == "On") "Off" else "On") })
+        fun toggle(label: String, key: String) = col.addView(btn(label) { send(key, if (state[key] == "On") "Off" else "On") })
+        toggle("Bass EQ", "Bass")
+        toggle("Auto-sense (input detection)", "AutoSense")
+        toggle("Auto standby (20 min)", "AutoStandby")
+        toggle("Network control in standby", "ControlStandby")
+        col.addView(TextView(this).apply { text = "Display brightness" })
+        col.addView(LinearLayout(this).apply { for (n in 0..3) addView(btn("$n") { send("Brightness", "$n") }) })
         for (s in listOf("Stream", "Wireless", "TV", "Phono", "Coax1", "Coax2", "Opt1", "Opt2")) col.addView(btn(s) { send("Source", s) })
         setContentView(ScrollView(this).apply { addView(col) })
     }
 
     private fun render() {
-        info.text = "Power ${state["Power"]}   Volume ${state["Volume"]} dB${if (state["Mute"] == "On") " (mute)" else ""}\nSource ${state["Source"]}   Bass EQ ${state["Bass"]}"
+        info.text = "Power ${state["Power"]}   Volume ${state["Volume"]} dB${if (state["Mute"] == "On") " (mute)" else ""}\nSource ${state["Source"]}   Bass EQ ${state["Bass"]}\nAuto-sense ${state["AutoSense"]}   Auto standby ${state["AutoStandby"]}   Network in standby ${state["ControlStandby"]}\nBrightness ${state["Brightness"]}   Analog gain ${state["AnalogGain"]} (read-only)\n${state["Model"]} firmware ${state["Version"]}"
     }
 
     override fun onDestroy() { client?.stop(); super.onDestroy() }
