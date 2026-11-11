@@ -67,7 +67,6 @@ fun Screen(amp: Amp, a: Actions) {
             if (!amp.connected) Banner(stringResource(R.string.reconnecting))
             PowerButton(amp, a)
             VolumeCard(amp, a)
-            MediaCard(a)
             SourceCard(amp, a)
             SoundCard(amp, a)
             InfoCard(amp)
@@ -204,35 +203,6 @@ private fun VolumeCard(amp: Amp, a: Actions) {
             }
         }
     }
-}
-
-@Composable
-private fun MediaCard(a: Actions) = Section(stringResource(R.string.playback)) {
-    val haptic = LocalHapticFeedback.current
-    val fg = MaterialTheme.colorScheme.onSurface
-    @Composable fun key(code: Int, kind: String) { val desc = stringResource(when (kind) { "play" -> R.string.cd_play; "pause" -> R.string.cd_pause; "next" -> R.string.cd_next; else -> R.string.cd_prev }); val src = remember { MutableInteractionSource() }; FilledTonalIconButton(
-        { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); a.media(code) }, Modifier.size(64.dp).bounce(src).semantics { contentDescription = desc }, interactionSource = src,
-        colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = fg),
-    ) {
-        Canvas(Modifier.size(24.dp)) {
-            val w = size.width; val h = size.height
-            fun tri(x0: Float, x1: Float) = Path().apply { moveTo(x0, 0f); lineTo(x1, h / 2); lineTo(x0, h); close() }
-            fun triL(x0: Float, x1: Float) = Path().apply { moveTo(x1, 0f); lineTo(x0, h / 2); lineTo(x1, h); close() }
-            when (kind) {
-                "play" -> drawPath(tri(w * 0.2f, w * 0.95f), fg)
-                "pause" -> { drawRect(fg, Offset(w * 0.15f, 0f), Size(w * 0.25f, h)); drawRect(fg, Offset(w * 0.6f, 0f), Size(w * 0.25f, h)) }
-                "next" -> { drawPath(tri(0f, w * 0.75f), fg); drawRect(fg, Offset(w * 0.8f, 0f), Size(w * 0.18f, h)) }
-                else -> { drawPath(triL(w * 0.25f, w), fg); drawRect(fg, Offset(0f, 0f), Size(w * 0.18f, h)) }
-            }
-        }
-    } }
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-        key(android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS, "prev")
-        key(android.view.KeyEvent.KEYCODE_MEDIA_PLAY, "play")
-        key(android.view.KeyEvent.KEYCODE_MEDIA_PAUSE, "pause")
-        key(android.view.KeyEvent.KEYCODE_MEDIA_NEXT, "next")
-    }
-    Text(stringResource(R.string.playback_sub), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 12.dp))
 }
 
 @Composable

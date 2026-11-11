@@ -54,17 +54,11 @@
     <string name="raw_title">Commande brute</string>
     <string name="raw_sub">Pour les experts. Envoyée telle quelle, par exemple Main.Brightness=1. Une commande inconnue reste sans réponse.</string>
     <string name="send">Envoyer</string>
-    <string name="playback">Lecture</string>
-    <string name="playback_sub">Commande l\'appli de musique qui joue sur ce téléphone (Qobuz, Spotify…), y compris quand elle diffuse vers l\'ampli. L\'ampli n\'a pas de commandes de lecture.</string>
     <string name="theme_amoled">AMOLED</string>
     <string name="standby">Veille</string>
     <string name="vol_keys">Boutons de volume du téléphone</string>
     <string name="vol_keys_sub">Quand l\'appli est ouverte, ils commandent l\'ampli et non le téléphone.</string>
     <string name="cd_power">Alimentation</string>
-    <string name="cd_prev">Titre précédent</string>
-    <string name="cd_play">Lecture</string>
-    <string name="cd_pause">Pause</string>
-    <string name="cd_next">Titre suivant</string>
     <string name="cd_volume">Volume</string>
     <string name="on">Allumé</string>
     <string name="off">Éteint</string>

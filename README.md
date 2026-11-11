@@ -14,7 +14,6 @@ Tested only on a **NAD C 338** (firmware 1.76). Other NAD amps that speak the sa
 - Finds the amp on your network by itself (subnet scan, no mDNS needed), lists several amps if there are several, or connect by address / URL.
 - Stays connected: keep-alive pings, fast reconnect, connection log (with Wi-Fi strength) to diagnose drops.
 - Phone volume buttons control the amp (app open), optionally also in the background and with the screen off (opt-in; uses a small foreground service and plays an inaudible silent sound so Android routes the buttons).
-- Play / pause / previous / next for the music app playing on the phone (the amp has no playback commands).
 - Themes: device (Material You), light, dark, AMOLED, NAD-inspired, Dracula. English and French.
 - No ads, no analytics, no accounts. The only network traffic is to your amp.
 
