@@ -96,3 +96,16 @@ class TaperTest {
         assertEquals(0.6f, volumeGain(-10f, -50f)) // limit below the comfort level: never divide by zero
     }
 }
+
+class UpdateTest {
+    @Test fun versions() {
+        assertTrue(isNewer("0.1.0", "v0.1.1")); assertTrue(isNewer("0.1.9", "0.2")); assertTrue(isNewer("0.9", "1.0.0"))
+        assertTrue(!isNewer("0.1.1", "v0.1.1")); assertTrue(!isNewer("0.2.0", "v0.1.9")); assertTrue(!isNewer("0.1.0", "latest")); assertTrue(!isNewer("", "v1"))
+        assertTrue(!isNewer("1.0.0", "1.0"))
+    }
+    @Test fun release() {
+        val r = parseRelease("""{"url":"x","html_url":"https://evil.example/x","tag_name":"v0.1.1","name":"n"}""")
+        assertEquals(Release("v0.1.1", "https://github.com/benoit-prentout/nad-open-remote/releases/tag/v0.1.1"), r)
+        assertNull(parseRelease("""{"tag_name":"v1/../../evil"}""")); assertNull(parseRelease("{}"))
+    }
+}

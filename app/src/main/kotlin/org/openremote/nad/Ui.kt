@@ -62,6 +62,7 @@ fun Screen(amp: Amp, a: Actions) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Header(amp) { settings = true }
+        amp.update?.let { UpdateBanner(it, a) }
         if (amp.s.isEmpty()) ConnectCard(amp, a)
         else {
             if (!amp.connected) Banner(stringResource(R.string.reconnecting))
@@ -95,6 +96,17 @@ private fun Header(amp: Amp, onSettings: () -> Unit) = Row(verticalAlignment = A
                 drawCircle(bgc, 4.dp.toPx(), Offset(size.width * x, size.height * y))
                 drawCircle(c, 4.dp.toPx(), Offset(size.width * x, size.height * y), style = Stroke(w))
             }
+        }
+    }
+}
+
+@Composable
+private fun UpdateBanner(r: Release, a: Actions) = Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.primaryContainer) {
+    Column(Modifier.padding(14.dp)) {
+        Text(stringResource(R.string.update_available_fmt, r.tag), color = MaterialTheme.colorScheme.onPrimaryContainer, style = MaterialTheme.typography.titleSmall)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+            Button({ a.open(r.url) }) { Text(stringResource(R.string.download)) }
+            TextButton(a.dismissUpdate) { Text(stringResource(R.string.later), color = MaterialTheme.colorScheme.onPrimaryContainer) }
         }
     }
 }
@@ -321,6 +333,8 @@ private fun SettingsSheet(amp: Amp, a: Actions, onClose: () -> Unit) =
             Button({ a.raw(raw.trim()); raw = "" }, enabled = raw.startsWith("Main."), modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.send)) }
             HorizontalDivider()
             ConnectionLog()
+            HorizontalDivider()
+            AboutSection(amp, a)
         }
     }
 
@@ -345,4 +359,24 @@ private fun ConnectionLog() {
         }, enabled = lines.isNotEmpty()) { Text(stringResource(R.string.copy)) }
         OutlinedButton({ ConnLog.clear(ctx) }, enabled = lines.isNotEmpty()) { Text(stringResource(R.string.clear)) }
     }
+}
+
+@Composable
+private fun AboutSection(amp: Amp, a: Actions) {
+    Text(stringResource(R.string.about_app), style = MaterialTheme.typography.titleMedium)
+    Text(stringResource(R.string.version_fmt, amp.version), style = MaterialTheme.typography.bodyMedium)
+    Text(stringResource(R.string.license_line), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Row(Modifier.fillMaxWidth().toggleable(amp.updateCheck, role = Role.Switch, onValueChange = a.setUpdateCheck), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.check_updates), style = MaterialTheme.typography.bodyLarge)
+            Text(stringResource(R.string.check_updates_sub), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Switch(amp.updateCheck, null, colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.secondary, checkedThumbColor = MaterialTheme.colorScheme.onSecondary, checkedBorderColor = MaterialTheme.colorScheme.secondary))
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        OutlinedButton(a.checkNow) { Text(stringResource(R.string.check_now)) }
+        amp.updateMsg?.let { Text(stringResource(it, amp.updateMsgArg), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f)) }
+    }
+    OutlinedButton({ a.open(REPO_URL) }, Modifier.fillMaxWidth()) { Text(stringResource(R.string.source_code)) }
+    OutlinedButton({ a.open("$REPO_URL/issues") }, Modifier.fillMaxWidth()) { Text(stringResource(R.string.report_issue)) }
 }

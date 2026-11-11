@@ -26,6 +26,11 @@ class Amp {
     var maxVolume by mutableStateOf(12f)
     var volKeys by mutableStateOf(true)
     var bgKeys by mutableStateOf(false)
+    var updateCheck by mutableStateOf(true)
+    var update by mutableStateOf<Release?>(null)          // newer release found, not dismissed
+    var updateMsg by mutableStateOf<Int?>(null)           // result of the last manual check
+    var updateMsgArg by mutableStateOf("")
+    var version = ""
     var host by mutableStateOf("")
     var theme by mutableStateOf(ThemeChoice.System)
     var lang by mutableStateOf("system")
@@ -36,7 +41,7 @@ class Amp {
 
 class Actions(
     val send: (String, String) -> Unit, val raw: (String) -> Unit, val find: () -> Unit, val connect: (String, Int) -> Unit,
-    val forget: () -> Unit, val setTheme: (ThemeChoice) -> Unit, val setLang: (String) -> Unit, val setMaxVolume: (Float) -> Unit, val setVolKeys: (Boolean) -> Unit, val setBgKeys: (Boolean) -> Unit,
+    val forget: () -> Unit, val setTheme: (ThemeChoice) -> Unit, val setLang: (String) -> Unit, val setMaxVolume: (Float) -> Unit, val setVolKeys: (Boolean) -> Unit, val setBgKeys: (Boolean) -> Unit, val setUpdateCheck: (Boolean) -> Unit, val checkNow: () -> Unit, val dismissUpdate: () -> Unit, val open: (String) -> Unit,
 )
 
 class MainActivity : ComponentActivity() {
@@ -49,6 +54,24 @@ class MainActivity : ComponentActivity() {
     private var keyAt = 0L
 
     private val notifPerm = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) {}
+
+    /** Asks GitHub for the latest release (HTTPS, nothing sent but the request itself). A manual check ignores the dismissal. */
+    private fun checkUpdate(manual: Boolean) {
+        if (manual) { amp.updateMsg = R.string.update_checking; amp.updateMsgArg = "" }
+        Thread {
+            val rel = runCatching {
+                val c = java.net.URL(RELEASES_API).openConnection() as java.net.HttpURLConnection
+                c.connectTimeout = 8000; c.readTimeout = 8000; c.setRequestProperty("Accept", "application/vnd.github+json")
+                c.inputStream.bufferedReader().use { parseRelease(it.readText()) }
+            }.getOrNull()
+            runOnUiThread {
+                if (rel != null) prefs.edit().putLong("updateAt", System.currentTimeMillis()).apply()
+                val newer = rel != null && isNewer(amp.version, rel.tag)
+                if (newer && (manual || prefs.getString("dismissed", "") != rel!!.tag)) amp.update = rel
+                if (manual) { amp.updateMsg = when { rel == null -> R.string.update_failed; newer -> R.string.update_available_fmt; else -> R.string.up_to_date }; amp.updateMsgArg = rel?.tag ?: "" }
+            }
+        }.start()
+    }
 
     private fun setBg(on: Boolean) {
         amp.bgKeys = on; prefs.edit().putBoolean("bgKeys", on).apply()
@@ -94,6 +117,9 @@ class MainActivity : ComponentActivity() {
         amp.maxVolume = prefs.getFloat("maxVol", 12f)
         amp.volKeys = prefs.getBoolean("volKeys", true)
         amp.bgKeys = prefs.getBoolean("bgKeys", false)
+        amp.updateCheck = prefs.getBoolean("updateCheck", true)
+        amp.version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull() ?: ""
+        if (amp.updateCheck && System.currentTimeMillis() - prefs.getLong("updateAt", 0) > 12 * 3600_000L) checkUpdate(manual = false)
         amp.theme = runCatching { ThemeChoice.valueOf(prefs.getString("theme", "")!!) }.getOrDefault(ThemeChoice.System)
         amp.lang = prefs.getString("lang", "system") ?: "system"
         // debug builds only: `am start --es theme Dracula` previews a theme without saving it (used for screenshots)
@@ -115,6 +141,10 @@ class MainActivity : ComponentActivity() {
             setMaxVolume = { amp.maxVolume = it; prefs.edit().putFloat("maxVol", it).apply() },
             setVolKeys = { amp.volKeys = it; prefs.edit().putBoolean("volKeys", it).apply(); if (!it) setBg(false) },
             setBgKeys = ::setBg,
+            setUpdateCheck = { amp.updateCheck = it; prefs.edit().putBoolean("updateCheck", it).apply(); if (!it) amp.update = null },
+            checkNow = { checkUpdate(manual = true) },
+            dismissUpdate = { amp.update?.let { prefs.edit().putString("dismissed", it.tag).apply() }; amp.update = null },
+            open = { url -> if (url.startsWith(REPO_URL)) runCatching { startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))) } },
         )
         setContent {
             val dark = if (amp.theme == ThemeChoice.System) isSystemInDarkTheme() else amp.theme.isDark

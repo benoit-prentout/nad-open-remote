@@ -81,4 +81,18 @@
     <string name="bg_notif_stop">Stop</string>
     <string name="show_log">Show log</string>
     <string name="hide_log">Hide log</string>
+    <string name="update_available_fmt">Version %1$s is available.</string>
+    <string name="download">Download</string>
+    <string name="later">Later</string>
+    <string name="about_app">About</string>
+    <string name="version_fmt">Version %1$s</string>
+    <string name="license_line">Free software, GPL-3.0-or-later. Unofficial, not affiliated with NAD Electronics.</string>
+    <string name="check_updates">Check for updates</string>
+    <string name="check_updates_sub">Asks GitHub once a day whether a newer version exists. Nothing else is sent. Turn off if you prefer. Updates are never installed by themselves: you download and install them.</string>
+    <string name="check_now">Check now</string>
+    <string name="update_checking">Checking…</string>
+    <string name="up_to_date">You have the latest version.</string>
+    <string name="update_failed">Could not check (no internet, or GitHub unreachable).</string>
+    <string name="source_code">Source code on GitHub</string>
+    <string name="report_issue">Report a problem</string>
 </resources>

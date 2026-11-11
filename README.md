@@ -32,7 +32,7 @@ Tested only on a **NAD C 338** (firmware 1.76). Other NAD amps that speak the sa
 - Stays connected: keep-alive pings, fast reconnect, connection log (with Wi-Fi strength) to diagnose drops.
 - Phone volume buttons control the amp (app open), optionally also in the background and with the screen off (opt-in; uses a small foreground service and plays an inaudible silent sound so Android routes the buttons).
 - Themes: device (Material You), light, dark, AMOLED, NAD-inspired, Dracula. English and French.
-- No ads, no analytics, no accounts. The only network traffic is to your amp.
+- No ads, no analytics, no accounts. Network traffic: your amp, plus an optional once-a-day check of the GitHub releases page for a newer version (switch in Settings; updates are never installed automatically).
 
 ## Install
 

@@ -4,7 +4,7 @@ plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id(
 android {
     namespace = "org.openremote.nad"
     compileSdk = 35
-    defaultConfig { applicationId = "org.openremote.nad"; minSdk = 26; targetSdk = 35; versionCode = 1; versionName = "0.1.0" }
+    defaultConfig { applicationId = "org.openremote.nad"; minSdk = 26; targetSdk = 35; versionCode = 2; versionName = "0.1.1" }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     // Release signing: keystore lives outside the repository (~/.config/nad-wifi-app/keystore.properties).
     val ks = Properties().apply { File(System.getProperty("user.home"), ".config/nad-wifi-app/keystore.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) } }

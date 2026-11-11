@@ -74,4 +74,18 @@
     <string name="bg_notif_stop">Arrêter</string>
     <string name="show_log">Afficher le journal</string>
     <string name="hide_log">Masquer le journal</string>
+    <string name="update_available_fmt">La version %1$s est disponible.</string>
+    <string name="download">Télécharger</string>
+    <string name="later">Plus tard</string>
+    <string name="about_app">À propos</string>
+    <string name="version_fmt">Version %1$s</string>
+    <string name="license_line">Logiciel libre, GPL-3.0 ou ultérieure. Non officiel, sans lien avec NAD Electronics.</string>
+    <string name="check_updates">Rechercher les mises à jour</string>
+    <string name="check_updates_sub">Demande à GitHub une fois par jour s\'il existe une version plus récente. Rien d\'autre n\'est envoyé. Désactivez-le si vous préférez. Une mise à jour ne s\'installe jamais toute seule : vous la téléchargez et l\'installez.</string>
+    <string name="check_now">Vérifier maintenant</string>
+    <string name="update_checking">Vérification…</string>
+    <string name="up_to_date">Vous avez la dernière version.</string>
+    <string name="update_failed">Vérification impossible (pas d\'internet, ou GitHub injoignable).</string>
+    <string name="source_code">Code source sur GitHub</string>
+    <string name="report_issue">Signaler un problème</string>
 </resources>
