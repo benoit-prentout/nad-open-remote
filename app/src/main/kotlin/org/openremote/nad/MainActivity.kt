@@ -23,6 +23,16 @@ class MainActivity : Activity() {
         fun volume(delta: Double) { state["Volume"]?.toDoubleOrNull()?.let { send("Volume", "%.1f".format((it + delta).coerceIn(-80.0, 12.0))) } }
 
         col.addView(ip)
+        col.addView(btn("Find amp on network") {
+            status.text = "Scanning…"
+            Thread {
+                val found = scan(localSubnetHosts())
+                runOnUiThread {
+                    status.text = if (found.isEmpty()) "No amp found. Enter the IP by hand." else "Found ${found.values.first()} at ${found.keys.first()}"
+                    found.keys.firstOrNull()?.let { ip.setText(it) }
+                }
+            }.start()
+        })
         col.addView(btn("Connect") {
             val host = ip.text.toString().trim()
             prefs.edit().putString("ip", host).apply()

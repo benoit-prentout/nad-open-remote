@@ -40,3 +40,15 @@ class NadClientTest {
         client.stop(); server.close()
     }
 }
+
+class DiscoveryTest {
+    @Test fun findsFakeAmpOnly() {
+        val amp = ServerSocket(0, 50, java.net.InetAddress.getByName("127.0.0.1"))
+        Thread { while (true) { val s = amp.accept(); s.getInputStream().bufferedReader().readLine(); s.getOutputStream().write("Main.Model=NADC338\r\n".toByteArray()); s.close() } }.start()
+        val silent = ServerSocket(0, 50, java.net.InetAddress.getByName("127.0.0.1"))
+        assertEquals("NADC338", probe("127.0.0.1", amp.localPort))
+        assertNull(probe("127.0.0.1", silent.localPort, 300))
+        assertEquals(mapOf("127.0.0.1" to "NADC338"), scan(listOf("127.0.0.1", "127.0.0.3"), amp.localPort))
+        amp.close(); silent.close()
+    }
+}
