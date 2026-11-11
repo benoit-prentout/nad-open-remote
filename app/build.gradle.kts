@@ -1,9 +1,15 @@
+import java.util.Properties
+
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }
 android {
     namespace = "org.openremote.nad"
     compileSdk = 35
     defaultConfig { applicationId = "org.openremote.nad"; minSdk = 26; targetSdk = 35; versionCode = 1; versionName = "0.1.0" }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+    // Release signing: keystore lives outside the repository (~/.config/nad-wifi-app/keystore.properties).
+    val ks = Properties().apply { File(System.getProperty("user.home"), ".config/nad-wifi-app/keystore.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) } }
+    signingConfigs { if (ks.isNotEmpty()) create("release") { storeFile = file(ks["storeFile"] as String); storePassword = ks["storePassword"] as String; keyAlias = ks["keyAlias"] as String; keyPassword = ks["keyPassword"] as String } }
+    buildTypes { release { isMinifyEnabled = true; isShrinkResources = true; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt")); if (ks.isNotEmpty()) signingConfig = signingConfigs.getByName("release") } }
     buildFeatures { compose = true }
     kotlinOptions { jvmTarget = "17" }
 }

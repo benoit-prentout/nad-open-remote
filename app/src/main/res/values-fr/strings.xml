@@ -14,7 +14,6 @@
     <string name="manual_invalid">Cette adresse n\'est pas valide.</string>
     <string name="connect">Connecter</string>
     <string name="unreachable">Ampli enregistré injoignable, recherche…</string>
-    <string name="db_muted">dB · coupé</string>
     <string name="mute">Muet</string>
     <string name="muted">Coupé</string>
     <string name="source">Source</string>
@@ -30,7 +29,6 @@
     <string name="autostandby">Veille automatique</string>
     <string name="autostandby_sub">Veille après 20 min d\'inactivité</string>
     <string name="controlstandby">Contrôle réseau en veille (fixé par l\'ampli)</string>
-    <string name="controlstandby_sub">Garde l\'ampli joignable</string>
     <string name="brightness">Luminosité de l\'afficheur</string>
     <string name="br_off">Éteint</string>
     <string name="br_low">Faible</string>
@@ -58,7 +56,6 @@
     <string name="send">Envoyer</string>
     <string name="playback">Lecture</string>
     <string name="playback_sub">Commande l\'appli de musique qui joue sur ce téléphone (Qobuz, Spotify…), y compris quand elle diffuse vers l\'ampli. L\'ampli n\'a pas de commandes de lecture.</string>
-    <string name="made_for">Pour le NAD C 338</string>
     <string name="theme_amoled">AMOLED</string>
     <string name="standby">Veille</string>
     <string name="vol_keys">Boutons de volume du téléphone</string>

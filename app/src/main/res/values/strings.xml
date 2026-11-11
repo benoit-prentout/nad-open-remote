@@ -1,6 +1,5 @@
 <resources>
-    <string name="app_name">Open Remote for NAD</string>
-    <string name="title">Open Remote</string>
+    <string name="app_name" translatable="false">Open Remote for NAD</string>
     <string name="not_connected">Not connected</string>
     <string name="connected_fmt">%1$s · connected</string>
     <string name="settings">Settings</string>
@@ -16,28 +15,25 @@
     <string name="manual_invalid">This address is not valid.</string>
     <string name="connect">Connect</string>
     <string name="unreachable">Saved amp unreachable, searching…</string>
-    <string name="db">dB</string>
-    <string name="db_muted">dB · muted</string>
     <string name="mute">Mute</string>
     <string name="muted">Muted</string>
     <string name="source">Source</string>
     <string name="src_stream">Streaming</string>
-    <string name="src_wireless">Bluetooth</string>
-    <string name="src_tv">TV</string>
-    <string name="src_phono">Phono</string>
+    <string name="src_wireless" translatable="false">Bluetooth</string>
+    <string name="src_tv" translatable="false">TV</string>
+    <string name="src_phono" translatable="false">Phono</string>
     <string name="src_coax1">Coax 1</string>
     <string name="src_coax2">Coax 2</string>
     <string name="src_opt1">Optical 1</string>
     <string name="src_opt2">Optical 2</string>
     <string name="sound">Sound &amp; settings</string>
-    <string name="bass">Bass EQ</string>
+    <string name="bass" translatable="false">Bass EQ</string>
     <string name="bass_sub">+6 dB boost</string>
     <string name="autosense">Auto-sense</string>
     <string name="autosense_sub">Switch to the input that plays</string>
     <string name="autostandby">Auto standby</string>
     <string name="autostandby_sub">Sleep after 20 min idle</string>
     <string name="controlstandby">Network control in standby (set by the amp)</string>
-    <string name="controlstandby_sub">Keep the amp reachable</string>
     <string name="brightness">Display brightness</string>
     <string name="br_off">Off</string>
     <string name="br_low">Low</string>
@@ -52,8 +48,8 @@
     <string name="theme_system">Device</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
-    <string name="theme_nad">NAD</string>
-    <string name="theme_dracula">Dracula</string>
+    <string name="theme_nad" translatable="false">NAD</string>
+    <string name="theme_dracula" translatable="false">Dracula</string>
     <string name="language">Language</string>
     <string name="lang_system">Device</string>
     <string name="volume_limit_fmt">Volume limit: %1$d dB</string>
@@ -67,7 +63,6 @@
     <string name="send">Send</string>
     <string name="playback">Playback</string>
     <string name="playback_sub">Controls the music app playing on this phone (Qobuz, Spotify…), including when it casts to the amp. The amp itself has no playback commands.</string>
-    <string name="made_for">For the NAD C 338</string>
     <string name="theme_amoled">AMOLED</string>
     <string name="standby">Standby</string>
     <string name="vol_keys">Phone volume buttons</string>
